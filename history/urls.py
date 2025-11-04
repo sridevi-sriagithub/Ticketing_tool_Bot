@@ -6,4 +6,5 @@ urlpatterns = [
     path('history/', HistoryAPI.as_view(), name='history'),
     path('reports/', ReportAPI.as_view(), name='reports'),
     path('attachments/', AttachmentsAPI.as_view(), name='reports'),
+    path('attachments/<str:ticket_id>/', AttachmentsAPI.as_view(), name='reports'),
 ]

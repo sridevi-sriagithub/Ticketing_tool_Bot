@@ -2,18 +2,40 @@ from rest_framework import serializers
 from .models import History, Reports, Attachment
 from timer.models import Ticket
 
+# class AttachmentSerializer(serializers.ModelSerializer):
+#     file_url = serializers.SerializerMethodField()
+
+#     class Meta:
+#         model = Attachment
+#         fields = ['id', 'file_url', 'uploaded_at', 'ticket']
+
+#     def get_file_url(self, obj):
+#         request = self.context.get('request')
+#         if obj.file:
+#             url = obj.file.url
+#             return request.build_absolute_uri(url) if request else url
+#         return None
+
+
 class AttachmentSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
+    history_id = serializers.IntegerField(source='history.id', read_only=True)
+    file_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Attachment
-        fields = ['id', 'file_url', 'uploaded_at', 'ticket']
+        fields = ['id', 'file_url', 'file_name', 'uploaded_at', 'ticket', 'history_id']
 
     def get_file_url(self, obj):
         request = self.context.get('request')
         if obj.file:
-            url = obj.file.url
+            url = obj.file.url  # Cloudinary or media URL
             return request.build_absolute_uri(url) if request else url
+        return None
+
+    def get_file_name(self, obj):
+        if obj.file:
+            return obj.file.name.split('/')[-1]  # Just the file name, not full path
         return None
 
 class TicketHistorySerializer(serializers.ModelSerializer):

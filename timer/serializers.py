@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from .models import Ticket, SLATimer,PauseLogs
 from .models import Ticket, Attachment
-from .models import Ticket, Attachment,TicketComment,TicketCommentAttachment
+from .models import Ticket, Attachment,TicketComment,TicketCommentAttachment, WorkingHours, Holiday
 from organisation_details.models import Organisation
 from login_details.models import User
 from services.models import IssueCategory, IssueType
 from solution_groups.models import SolutionGroup
 from roles_creation.models import UserRole
- 
+
 class AttachmentSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
 
@@ -195,4 +195,13 @@ class TicketCommentListSerializer(serializers.ModelSerializer):
         model = TicketComment
         fields = ['id', 'ticket', 'comment', 'is_internal', 'attachments', 'created_by', 'created_at']
  
- 
+
+class WorkingHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkingHours
+        fields = "__all__"
+
+class HolidaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Holiday
+        fields = "__all__"

@@ -1218,4 +1218,77 @@ class TicketCommentAPIView(APIView):
             return Response({"message": "Comment added successfully."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
  
-  
+
+
+from .serializers import WorkingHoursSerializer
+from .models import WorkingHours
+class WorkingHoursAPIView(APIView):
+    permission_classes = [IsAuthenticated] 
+    authentication_classes = [JWTAuthentication]
+    """Handles GET and POST for Working Hours"""
+    def get(self,request):
+        # self.permission_required = "view_working_hours"  
+        # HasRolePermission.has_permission(self,request,self.permission_required)
+        # """get method to get all Working Hours objects"""
+        working_hours = WorkingHours.objects.all()
+        serializer = WorkingHoursSerializer(working_hours, many=True)
+        return Response(serializer.data)
+    def post(self, request):
+        """post method to create a new Working Hours object"""
+        serializer = WorkingHoursSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk):
+        """put method to update the Working Hours object"""
+        working_hours = get_object_or_404(WorkingHours, pk=pk)
+        serializer = WorkingHoursSerializer(working_hours, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self,request, pk):
+        """delete method to delete the Working Hours object"""
+        working_hours = get_object_or_404(WorkingHours, pk=pk)
+        working_hours.delete()
+        return Response({"message": "Working Hours deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+
+from .serializers import HolidaySerializer
+from .models import Holiday
+class HolidayAPIView(APIView):
+    permission_classes = [IsAuthenticated] 
+    authentication_classes = [JWTAuthentication]
+    """Handles GET and POST for Holidays"""
+    def get(self,request):
+        self.permission_required = "view_holidays"  
+        HasRolePermission.has_permission(self,request,self.permission_required)
+        """get method to get all Holiday objects"""
+        holidays = Holiday.objects.all()
+        serializer = HolidaySerializer(holidays, many=True)
+        return Response(serializer.data)
+    def post(self, request):
+        """post method to create a new Holiday object"""
+        serializer = HolidaySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk):
+        """put method to update the Holiday object"""
+        holiday = get_object_or_404(Holiday, pk=pk)
+        serializer = HolidaySerializer(holiday, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self,request, pk):
+        """delete method to delete the Holiday object"""
+        holiday = get_object_or_404(Holiday, pk=pk)
+        holiday.delete()
+        return Response({"message": "Holiday deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

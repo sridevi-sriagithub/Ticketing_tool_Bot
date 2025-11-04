@@ -192,13 +192,8 @@ REST_FRAMEWORK = {
 }
 
 # Cloudinary settings
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dw6rggpob',
-    'API_KEY': '477812452988213',
-    'API_SECRET': 'nJfRIPv8BwlEHiDgKUs1aGUhIkQ'
-}
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 # Cache settings
 CACHES = {
@@ -230,3 +225,14 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",  # for development
     },
 }
+
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dngaxesdz',
+    'API_KEY': '983585494285258',
+    'API_SECRET': 'uYYsOTYP3tHUj_9Qa5Fn7KXH4_I',
+    'SECURE': True,  
+    'AUTHENTICATED': False
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

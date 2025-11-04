@@ -5,7 +5,7 @@ from .models import Organisation, Employee
 # admin.site.register(Organisation)
 @admin.register(Organisation)
 class OrganisationAdmin(admin.ModelAdmin):
-    list_display = ("organisation_id", "organisation_name", "created_at", "modified_at","created_by","modified_by")  # Customize fields
+    list_display = ("organisation_id", "organisation_name", "created_at", "modified_at","created_by","modified_by", "working_hours")  # Customize fields
     search_fields = ("organisation_name",)  # Enable search by name
     list_filter = ("created_at",)  # Add filtering options
     readonly_fields = ("created_at", "modified_at")  # Make timestamps read-only

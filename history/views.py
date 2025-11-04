@@ -72,23 +72,20 @@ class ReportAPI(APIView):
                 serializer.save(modified_by=request.user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+    
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
+import jwt
+from django.conf import settings
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+@method_decorator(csrf_exempt, name='dispatch')      
 class AttachmentsAPI(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    # def get(self, request):
-    #     # self.permission_required = "view_employee"  
-    #     # HasRolePermission.has_permission(self,request,self.permission_required)
-       
-    #     if 1:
-    #         ticket=request.query_params.get('ticket')
-    #         print(ticket)
-    #         report = Attachment.objects.filter(ticket=ticket)
-    #         serializer = AttachmentSerializer(report, many=True)
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     else:
-    #       return Response({"error": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def get(self, request):
         ticket_id = request.query_params.get("ticket_id")
@@ -105,8 +102,106 @@ class AttachmentsAPI(APIView):
             return Response(serializer.data)
  
         return Response({"detail": "You do not have permission to view these attachments."}, status=403)
- 
- 
+    
+    
+    
+
+    # def post(self, request, *args, **kwargs):
+    #     ticket_id = request.data.get("ticket_id")
+    #     file = request.FILES.get("file")
+
+    #     if file.size > 10 * 1024 * 1024:  # 10 MB limit
+    #         # send websocket message for error
+    #         channel_layer = get_channel_layer()
+    #         async_to_sync(channel_layer.group_send)(
+    #             f"ticket_{ticket_id}",
+    #             {
+    #                 "type": "send_notification",
+    #                 "message": f"File size limit exceeded for {file.name}.",
+    #                 "status": "error"
+    #             }
+    #         )
+    #         return Response({"error": "File size limit exceeded"}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # Save the file normally (simplified)
+    #     # Attachment.objects.create(ticket_id=ticket_id, file=file)
+
+    #     # send success message to websocket
+    #     channel_layer = get_channel_layer()
+    #     async_to_sync(channel_layer.group_send)(
+    #         f"ticket_{ticket_id}",
+    #         {
+    #             "type": "send_notification",
+    #             "message": f"File '{file.name}' uploaded successfully!",
+    #             "status": "success"
+    #         }
+    #     )
+
+    #     return Response({"message": "File uploaded successfully!"}, status=status.HTTP_201_CREATED)
+
+    def post(self, request, ticket_id, *args, **kwargs):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ File size validation (10MB)
+        if file.size > 10 * 1024 * 1024:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"ticket_{ticket_id}",
+                {
+                    "type": "chat_message",
+                    "message": f"❌ File '{file.name}' size limit exceeded (10MB).",
+                    "attachments": [],
+                    "username": request.user.username,
+                    "created_at": "",
+                },
+            )
+            return Response({"error": "File size limit exceeded"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # ✅ Get ticket
+            ticket = Ticket.objects.get(ticket_id=ticket_id)
+
+            # ✅ Save the attachment
+            attachment = Attachment.objects.create(ticket=ticket, file=file)
+
+            # ✅ Create a History message
+            history = History.objects.create(
+                ticket=ticket,
+                title="[Attachment]",
+                created_by=request.user,
+            )
+            attachment.history = history
+            attachment.save()
+
+            # ✅ Notify via WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"ticket_{ticket_id}",
+                {
+                    "type": "chat_message",
+                    "message": "📎 New attachment uploaded",
+                    "attachments": [attachment.file.url],
+                    "username": request.user.username,
+                    "created_at": history.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                },
+            )
+
+            return Response(
+                {
+                    "message": "File uploaded successfully!",
+                    "file_url": attachment.file.url,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Ticket.DoesNotExist:
+            return Response({"error": "Ticket not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print("Upload error:", e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
  
 
 class TicketChatHistory(APIView):

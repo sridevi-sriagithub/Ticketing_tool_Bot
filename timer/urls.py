@@ -1,5 +1,11 @@
 from django.urls import path
-from .views import GetAssignee,dispatcherAPIView, DashboardTicketAPIView,TicketAPI_Delegated, CreateTicketAPIView,TicketAPIID, TicketDetailAPIView, SLATimerAPIView, SLATimerDetailAPIView,ReferenceTicketAPILIST,AssignTicketAPIView,TicketChoicesAPIView,ListTicketAPIView,TicketByStatusAPIView,TotalTicketsAPIViewCount,SLABreachStatusAPIView, TicketCommentAPIView
+from .views import (
+    GetAssignee,dispatcherAPIView, DashboardTicketAPIView,TicketAPI_Delegated, 
+    CreateTicketAPIView,TicketAPIID, TicketDetailAPIView, SLATimerAPIView, 
+    SLATimerDetailAPIView,ReferenceTicketAPILIST,AssignTicketAPIView,
+    TicketChoicesAPIView,ListTicketAPIView,TicketByStatusAPIView,TotalTicketsAPIViewCount,
+    SLABreachStatusAPIView, TicketCommentAPIView, WorkingHoursAPIView, HolidayAPIView
+)
 
 urlpatterns = [
 
@@ -28,5 +34,8 @@ urlpatterns = [
 
     path('delegate/',TicketAPI_Delegated.as_view(),name ='delegate'),
     path('ticket-comments/', TicketCommentAPIView.as_view(), name='ticket-comments'),
+    path('working-hours/', WorkingHoursAPIView.as_view(), name='working-hours'),
+    path('working-hours/<int:pk>/', WorkingHoursAPIView.as_view(), name='working-hours'),
+    path('holidays/', HolidayAPIView.as_view(), name='holidays'),
 
 ]

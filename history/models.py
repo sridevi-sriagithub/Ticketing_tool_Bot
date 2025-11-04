@@ -1,6 +1,7 @@
 from django.db import models
 # from django.db import models
 from login_details.models import User
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 
 class History(models.Model):
@@ -52,10 +53,12 @@ class Reports(models.Model):
         return self.title
 
 class Attachment(models.Model):
-    report = models.ForeignKey(Reports, on_delete=models.CASCADE, related_name='report_attachments')
-    file = models.FileField(upload_to='attachments/')
+    report = models.ForeignKey(Reports, on_delete=models.CASCADE, related_name='report_attachments', null=True, blank=True)
+    file = models.FileField(upload_to='attachments/', storage=MediaCloudinaryStorage())
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    ticket = models.ForeignKey("timer.Ticket",on_delete=models.SET_NULL, null=True, blank=True,related_name='report_attach_ticket')  
+    ticket = models.ForeignKey("timer.Ticket",on_delete=models.SET_NULL, null=True, blank=True,related_name='report_attach_ticket')
+    history = models.ForeignKey("history.History", on_delete=models.SET_NULL, null=True, blank=True, related_name='attachments')
+  
 
     def __str__(self):
       

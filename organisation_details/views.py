@@ -76,7 +76,7 @@ class OrganisationAPI(APIView):
             
             return Response({"error": "Organisation not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = OrganisationSerializer(organisation, data=request.data)
+        serializer = OrganisationSerializer(organisation, data=request.data, partial=True)
         if serializer.is_valid():
             organisation = serializer.save(modified_by=request.user)
             return Response(serializer.data)

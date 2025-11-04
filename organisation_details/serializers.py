@@ -25,9 +25,12 @@ class OrganisationSerializer(serializers.ModelSerializer):
         fields = [
             'organisation_id', 'organisation_name', 'organisation_mail', 'is_active',
             'parent_organisation', 'created_at', 'modified_at', 'created_by', 'modified_by',
-            'support_organisations'
+            'support_organisations', 'working_hours',
         ]
 
+        extra_kwargs = {
+            'working_hours': {'required': True, 'allow_null': True},
+        }
       
 
 

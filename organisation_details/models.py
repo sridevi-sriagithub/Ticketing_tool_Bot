@@ -8,6 +8,7 @@ class Organisation(models.Model):
     organisation_id = models.BigAutoField(primary_key=True) 
     organisation_name = models.CharField(max_length=255,unique=True)  # Ensuring unique organisation name
     organisation_mail = models.EmailField(unique=True)  # Ensuring unique email
+    working_hours=models.ForeignKey("timer.WorkingHours",on_delete=models.SET_NULL,null=True,blank=True)
     is_active = models.BooleanField(default=True)  # Soft deletion flag
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
