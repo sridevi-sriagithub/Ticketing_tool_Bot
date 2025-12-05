@@ -18,19 +18,21 @@
 # echo "Build completed!"
 
 
-echo "Using Python 3.10"
+#!/usr/bin/env bash
+set -o errexit
 
-# Install python-build (Render uses herokuish)
-if ! command -v pyenv 2>/dev/null; then
-  export PYENV_ROOT="$HOME/.pyenv"
-  export PATH="$PYENV_ROOT/bin:$PATH"
+# FORCE Render to activate python-3.10.12
+if [[ -f /opt/render/.python-version ]]; then
+  echo "python-3.10.12" > /opt/render/.python-version
 fi
 
-# Install Python 3.10.12 if not available
-pyenv install -s 3.10.12
-pyenv global 3.10.12
-
+echo "Using Python version:"
 python3 --version
-pip3 install --upgrade pip
-pip3 install -r requirements.txt
-pip3 install botbuilder-core==4.14.0 botbuilder-dialogs==4.14.0 botbuilder-schema==4.14.0 aiohttp --no-deps
+
+pip install --upgrade pip
+pip install -r requirements.txt
+
+pip install botbuilder-core==4.14.0 \
+             botbuilder-schema==4.14.0 \
+             botbuilder-dialogs==4.14.0 \
+             aiohttp --no-deps
