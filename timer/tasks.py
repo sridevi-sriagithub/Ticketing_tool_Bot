@@ -1,3 +1,203 @@
+from __future__ import annotations
+from celery import shared_task
+from celery.utils.log import get_task_logger
+from django.conf import settings
+from .utils.teams import TeamsService, TeamsServiceError
+
+logger = get_task_logger(__name__)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+# def send_teams_user_notification(self, email: str | None, html_message: str, tenant_id: str | None = None, ticket_id: str | None = None):
+#     """
+#     Try to send a personal Teams message via Graph (app-only).
+#     If that fails and a webhook is configured, fall back to incoming webhook.
+#     Retries on failure and saves delivery status to Notification model for tracking.
+#     """
+#     from .models import Notification, Ticket
+
+#     ticket = None
+#     if ticket_id:
+#         try:
+#             ticket = Ticket.objects.get(ticket_id=ticket_id)
+#         except Ticket.DoesNotExist:
+#             logger.warning(f"Ticket {ticket_id} not found for notification tracking")
+
+#     # Create notification record
+#     notif = None
+#     try:
+#         notif = Notification.objects.create(
+#             ticket=ticket,
+#             recipient_email=email,
+#             method='graph_1to1' if email else 'webhook',
+#             status='queued'
+#         )
+#     except Exception as e:
+#         logger.exception("Failed to create Notification record: %s", e)
+
+#     if not email:
+#         # Nothing to do for personal send — try webhook instead
+#         logger.debug("No email provided for personal Teams notify; attempting webhook fallback")
+#         try:
+#             result = TeamsService.send_webhook_message(html_message)
+#             if notif:
+#                 notif.status = 'sent'
+#                 notif.response = {'method': 'webhook', 'result': result}
+#                 notif.save()
+#             logger.info("Webhook message sent successfully")
+#             return result
+#         except Exception as e:
+#             logger.exception("Webhook fallback failed: %s", e)
+#             if notif:
+#                 notif.status = 'failed'
+#                 notif.error_message = str(e)
+#                 notif.save()
+#             raise
+
+#     try:
+#         logger.info("Sending Teams 1:1 to %s", email)
+#         resp = TeamsService.notify_user_by_email(email, html_message, tenant_id=tenant_id)
+#         # resp may be either the new {"chat_id": ..., "message": {...}}
+#         # or the older message dict containing an 'id'. Handle both for safety.
+#         message_id = None
+#         chat_id = None
+#         sent_part = None
+#         if isinstance(resp, dict) and 'message' in resp:
+#             sent_part = resp.get('message')
+#             chat_id = resp.get('chat_id')
+#             message_id = sent_part.get('id') if isinstance(sent_part, dict) else None
+#         elif isinstance(resp, dict) and 'id' in resp:
+#             sent_part = resp
+#             message_id = resp.get('id')
+
+#         if notif:
+#             notif.status = 'sent'
+#             notif.message_id = message_id
+#             # store full response for debugging/inspection
+#             try:
+#                 notif.response = resp if isinstance(resp, dict) else {'result': str(resp)}
+#             except Exception:
+#                 notif.response = {'result': str(resp)}
+#             notif.save()
+
+#         logger.info("Teams 1:1 sent to %s (message_id: %s, chat_id: %s)", email, message_id, chat_id)
+#         print(f"[teams] sent -> email={email} message_id={message_id} chat_id={chat_id}", flush=True)
+
+#         # If we have both chat_id and message_id, attempt a verification GET to confirm the message exists
+#         if chat_id and message_id:
+#             try:
+#                 verify = TeamsService.get_message(chat_id, message_id, tenant_id=tenant_id)
+#                 logger.info("Verified message exists via GET: %s", verify.get('id'))
+#                 print(f"[teams] verify OK -> {verify.get('id')}", flush=True)
+#                 if notif:
+#                     # augment response with verification details
+#                     notif.response = {'sent': resp, 'verified': verify}
+#                     notif.save()
+#             except Exception as e:
+#                 logger.warning("Verification GET failed for %s: %s", email, e)
+#                 print(f"[teams] verify failed -> {e}", flush=True)
+#                 if notif:
+#                     notif.response = {'sent': resp, 'verified_error': str(e)}
+#                     notif.save()
+
+#         return resp
+#     except Exception as exc:
+#         logger.exception("Personal Teams send failed for %s: %s", email, exc)
+
+#         # Try webhook fallback if configured
+#         webhook = getattr(settings, 'TEAMS_INCOMING_WEBHOOK', None)
+#         if webhook:
+#             try:
+#                 logger.info("Attempting webhook fallback for %s", email)
+#                 result = TeamsService.send_webhook_message(html_message, webhook_url=webhook)
+#                 if notif:
+#                     notif.status = 'sent'
+#                     notif.method = 'webhook'
+#                     notif.response = {'fallback': True, 'result': result}
+#                     notif.save()
+#                 logger.info("Webhook fallback succeeded for %s", email)
+#                 return result
+#             except Exception as e:
+#                 logger.exception("Webhook fallback also failed for %s: %s", email, e)
+#                 if notif:
+#                     notif.status = 'failed'
+#                     notif.error_message = f"1:1 failed: {str(exc)}; webhook fallback also failed: {str(e)}"
+#                     notif.save()
+
+#         # Retries will be attempted by Celery
+#         if notif:
+#             notif.status = 'retrying'
+#             notif.save()
+
+#         try:
+#             raise self.retry(exc=exc)
+#         except Exception:
+#             # If retry raises (max retries exceeded), re-raise original
+#             if notif:
+#                 notif.status = 'failed'
+#                 notif.error_message = str(exc)
+#                 notif.save()
+#             raise
+
+def send_teams_user_notification(email=None, html_message=None, tenant_id=None, ticket_id=None):
+    from .models import Notification, Ticket
+
+    print("\n================ TEAMS NOTIFICATION ================")
+    print(f"→ Target email: {email}")
+    print(f"→ Ticket: {ticket_id}")
+    print("====================================================\n")
+
+    ticket = None
+    if ticket_id:
+        ticket = Ticket.objects.filter(ticket_id=ticket_id).first()
+
+    notif = Notification.objects.create(
+        ticket=ticket,
+        recipient_email=email,
+        method='graph_1to1' if email else 'webhook',
+        status='queued'
+    )
+
+    # 1️⃣ PERSONAL SEND
+    if email:
+        try:
+            resp = TeamsService.notify_user_by_email(
+                user_email=email,
+                html_message=html_message,
+                tenant_id=tenant_id
+            )
+
+            notif.status = "sent"
+            notif.response = resp
+            notif.save()
+
+            print("✅ Teams 1:1 personal message sent successfully.")
+            return resp
+
+        except Exception as e:
+            print(f"❌ Personal 1:1 message failed: {e}")
+
+    # 2️⃣ WEBHOOK FALLBACK
+    webhook = getattr(settings, "TEAMS_INCOMING_WEBHOOK", None)
+    if webhook:
+        try:
+            result = TeamsService.send_webhook_message(html_message)
+            notif.status = "sent"
+            notif.method = "webhook"
+            notif.response = {"result": result}
+            notif.save()
+            print("✅ Webhook fallback succeeded.")
+            return result
+
+        except Exception as e:
+            print(f"❌ Webhook fallback failed: {e}")
+
+    notif.status = "failed"
+    notif.error_message = "All notification methods failed."
+    notif.save()
+    raise Exception("Teams notification failed.")
+
+
 from celery import shared_task
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings

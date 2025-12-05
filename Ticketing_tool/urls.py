@@ -5,9 +5,11 @@ from django.urls import path,include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from bot.views import messages
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("api/messages", messages),
     path('user/', include('login_details.urls')),
     path('ticket/', include('timer.urls')),
     path('roles/', include('roles_creation.urls')),

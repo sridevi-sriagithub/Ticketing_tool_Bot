@@ -149,7 +149,7 @@ def next_working_time(current_time, working_hours):
     
     print(f"[DEBUG next_working_time] Input: {current_time}, Working days: {working_days}, Current weekday: {current_time.weekday()}")
 
-    from timer.utils import is_holiday
+    from timer.util import is_holiday
 
     # ✅ CRITICAL FIX: If current time is past working hours today, move to next day
     if current_time.time() > working_hours.end_hour:

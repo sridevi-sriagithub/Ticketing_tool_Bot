@@ -16,7 +16,7 @@ from priority.models import Priority
 from login_details.models import User
 import random,string
 from project_details.models import ProjectsDetails
-from .utils import next_working_time
+from .util import next_working_time
 
 
 
@@ -184,6 +184,19 @@ class Ticket(models.Model):
             sla_timer.save()         
         sla_timer.check_sla_breach()
         super().save(update_fields=['status'])
+    
+    def is_assignee_changed(self):
+        """Return True if assignee changed compared to previous DB value."""
+        if not self.pk:  # New ticket, no previous value
+            return False
+
+        try:
+            old = Ticket.objects.get(pk=self.pk)
+        except Ticket.DoesNotExist:
+            return False
+
+        # Compare old assignee with new assignee
+        return old.assignee_id != self.assignee_id
 
     
 
@@ -256,7 +269,8 @@ class SLATimer(models.Model):
         Returns the correct SLA start time based on organisation's working hours.
         Skips weekends and holidays.
         """
-        from timer.utils import next_working_time
+        from timer.util import next_working_time
+
         
         tz = pytz.timezone("Asia/Kolkata")
         now = timezone.now().astimezone(tz)
@@ -279,6 +293,8 @@ class SLATimer(models.Model):
             next_start = now
 
         return next_start
+    
+
 
         
 
@@ -860,6 +876,41 @@ class SLATimer(models.Model):
         return self.breached
 
 
+class Notification(models.Model):
+    """Track Teams notifications sent by background tasks.
+
+    This model stores the recipient, method, status, API response and any
+    error message so you can audit notification delivery.
+    """
+    STATUS_CHOICES = [
+        ("queued", "Queued"),
+        ("sent", "Sent"),
+        ("failed", "Failed"),
+        ("retrying", "Retrying"),
+    ]
+    METHOD_CHOICES = [
+        ("graph_1to1", "1:1 via Graph"),
+        ("webhook", "Incoming Webhook"),
+        ("channel", "Channel via Graph"),
+    ]
+
+    ticket = models.ForeignKey('timer.Ticket', on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    recipient_email = models.EmailField(null=True, blank=True)
+    method = models.CharField(max_length=20, choices=METHOD_CHOICES, default='graph_1to1')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
+    message_id = models.CharField(max_length=200, null=True, blank=True)
+    response = models.JSONField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.ticket.ticket_id if self.ticket else 'N/A'} -> {self.recipient_email} ({self.status})"
+
+
 
 
     def send_warning_notification(self):
@@ -1000,3 +1051,35 @@ class TicketCommentAttachment(models.Model):
     file = models.FileField(upload_to='ticket_attachments/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey("login_details.User", on_delete=models.CASCADE, null=True, blank=True)
+
+
+class Notification(models.Model):
+    """Track Teams notifications sent to users."""
+    STATUS_CHOICES = [
+        ('queued', 'Queued'),
+        ('sent', 'Sent'),
+        ('failed', 'Failed'),
+        ('retrying', 'Retrying'),
+    ]
+    METHOD_CHOICES = [
+        ('graph_1to1', '1:1 via Graph'),
+        ('webhook', 'Incoming Webhook'),
+        ('channel', 'Channel via Graph'),
+    ]
+
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    recipient_email = models.EmailField(null=True, blank=True)
+    method = models.CharField(max_length=20, choices=METHOD_CHOICES, default='graph_1to1')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
+    message_id = models.CharField(max_length=200, null=True, blank=True)
+    response = models.JSONField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.ticket.ticket_id if self.ticket else 'N/A'} -> {self.recipient_email} ({self.status})"
+

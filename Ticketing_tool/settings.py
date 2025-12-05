@@ -1,8 +1,55 @@
 from pathlib import Path
 import os
+# import environ
 
-# Base directory
+
+# env = environ.Env()
+# environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+
+
+# # Base directory
+# BASE_DIR = Path(__file__).resolve().parent.parent
+
+import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+MS_CLIENT_ID = env("MS_CLIENT_ID")
+MS_CLIENT_SECRET = env("MS_CLIENT_SECRET")
+# For multi-tenant: use the tenant id of your own app for token by default,
+# but store tenant_id per-customer if you want to send from their tenant.
+MS_TENANT_ID = env("MS_TENANT_ID")  
+
+# Optional: target Team/Channel IDs (used when sending channel messages)
+# Add these to your .env if you plan to send to a channel via Graph
+MS_TEAM_ID = env("MS_TEAM_ID", default=None)
+MS_CHANNEL_ID = env("MS_CHANNEL_ID", default=None)
+
+# Optional incoming webhook (simpler channel-only delivery)
+TEAMS_INCOMING_WEBHOOK = env("TEAMS_INCOMING_WEBHOOK", default=None)
+
+# Default Graph scope for client credentials
+MS_GRAPH_SCOPE = "https://graph.microsoft.com/.default"
+
+# Token cache TTL (seconds) - keep less than token expiry (3600s)
+MS_TOKEN_CACHE_TTL = 3300
+
+# Step 1: Define BASE_DIR
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Step 2: Initialize environ and load .env
+# env = environ.Env()
+# environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+# # Step 3: Read webhook
+# TEAMS_INCOMING_WEBHOOK = env("TEAMS_INCOMING_WEBHOOK")
+
+
+
+# TEAMS_INCOMING_WEBHOOK = os.environ.get("TEAMS_INCOMING_WEBHOOK")
+
 
 # Security settings
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+hi)_oc5b4amw)o&%mk__mykl=5#v9f8lyf1oy1of%7$cg3z2(')  # Use an environment variable in production
@@ -31,7 +78,7 @@ INSTALLED_APPS = [
     'djcelery_email',
     'rest_framework',
     'login_details',
-    'timer',
+    'timer.apps.TimerConfig',
     'solution_groups',
     'roles_creation',
     'organisation_details',
@@ -48,6 +95,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'cloudinary_storage',
     'cloudinary',
+    'bot'
 ]
 
 MIDDLEWARE = [
@@ -154,13 +202,13 @@ EMAIL_HOST_PASSWORD = 'vcig blpb lbdg sact'
 # CELERY_TIMEZONE = 'Asia/Kolkata'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis connection URL (assuming Redis is running locally)
-CELERY_RESULT_BACKEND = 'redis://192.168.1.12:6379/0'  # Where Celery stores results (Redis as well)
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default='redis://localhost:6379/0')  # Redis connection URL (assuming Redis is running locally)
+# Use an explicit result backend; prefer redis or django-db depending on your setup
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default='django-db')
 CELERY_ACCEPT_CONTENT = ['application/json']  # Celery task content serialization format
 CELERY_TASK_SERIALIZER = 'json'  # Task serialization format
 CELERY_RESULT_SERIALIZER = 'json'  # Result serialization format
 CELERY_TIMEZONE = 'Asia/Kolkata'
-CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
   # Timezone for Celery tasks
 #CELERY_RESULT_BACKEND = 'django-db'  # Use Django database as the result backend
