@@ -16,28 +16,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-MS_CLIENT_ID = env("MS_CLIENT_ID")
-MS_CLIENT_SECRET = env("MS_CLIENT_SECRET")
-# For multi-tenant: use the tenant id of your own app for token by default,
-# but store tenant_id per-customer if you want to send from their tenant.
-MS_TENANT_ID = env("MS_TENANT_ID")  
+# MS_CLIENT_ID = env("MS_CLIENT_ID")
+# MS_CLIENT_SECRET = env("MS_CLIENT_SECRET")
+# # For multi-tenant: use the tenant id of your own app for token by default,
+# # but store tenant_id per-customer if you want to send from their tenant.
+# MS_TENANT_ID = env("MS_TENANT_ID")  
 
-# Optional: target Team/Channel IDs (used when sending channel messages)
-# Add these to your .env if you plan to send to a channel via Graph
-MS_TEAM_ID = env("MS_TEAM_ID", default=None)
-MS_CHANNEL_ID = env("MS_CHANNEL_ID", default=None)
+# # Optional: target Team/Channel IDs (used when sending channel messages)
+# # Add these to your .env if you plan to send to a channel via Graph
+# MS_TEAM_ID = env("MS_TEAM_ID", default=None)
+# MS_CHANNEL_ID = env("MS_CHANNEL_ID", default=None)
 
-# Optional incoming webhook (simpler channel-only delivery)
-TEAMS_INCOMING_WEBHOOK = env("TEAMS_INCOMING_WEBHOOK", default=None)
+# # Optional incoming webhook (simpler channel-only delivery)
+# TEAMS_INCOMING_WEBHOOK = env("TEAMS_INCOMING_WEBHOOK", default=None)
 
-# Default Graph scope for client credentials
-MS_GRAPH_SCOPE = "https://graph.microsoft.com/.default"
+# # Default Graph scope for client credentials
+# MS_GRAPH_SCOPE = "https://graph.microsoft.com/.default"
 
-# Token cache TTL (seconds) - keep less than token expiry (3600s)
-MS_TOKEN_CACHE_TTL = 3300
+# # Token cache TTL (seconds) - keep less than token expiry (3600s)
+# MS_TOKEN_CACHE_TTL = 3300
 
-# Step 1: Define BASE_DIR
-BASE_DIR = Path(__file__).resolve().parent.parent
+# # Step 1: Define BASE_DIR
+# BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Step 2: Initialize environ and load .env
 # env = environ.Env()
@@ -53,7 +53,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+hi)_oc5b4amw)o&%mk__mykl=5#v9f8lyf1oy1of%7$cg3z2(')  # Use an environment variable in production
-DEBUG = True
+DEBUG = False
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.174', '192.168.0.150']
 ALLOWED_HOSTS = ['*']  # Add your domain or IP address here
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
@@ -284,3 +284,6 @@ CLOUDINARY_STORAGE = {
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
