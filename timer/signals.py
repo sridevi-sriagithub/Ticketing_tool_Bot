@@ -121,15 +121,7 @@ def check_ticket_working_hours(sender, instance, created, **kwargs):
 
 
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from .models import Ticket
-from timer.utils.teams import TeamsService
-from timer.tasks import send_teams_user_notification
-import logging
-from django.conf import settings
 
-logger = logging.getLogger(__name__)
 # @receiver(post_save, sender=Ticket)
 # def ticket_assigned_notify(sender, instance, created, **kwargs):
 #     # adjust condition for assignment change
