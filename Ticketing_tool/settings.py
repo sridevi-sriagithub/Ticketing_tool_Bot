@@ -287,3 +287,16 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+CORS_ALLOWED_ORIGINS = [
+    "https://smba.trafficmanager.net",  # Microsoft Bot Service
+    "https://eur.smba.trafficmanager.net",
+    "https://api.botframework.com",
+]
+
+# CSRF exemptions for bot endpoint
+CSRF_TRUSTED_ORIGINS = [
+    "https://smba.trafficmanager.net",
+    "https://eur.smba.trafficmanager.net",
+    "https://your-domain.com",  # Replace with your actual domain
+]
