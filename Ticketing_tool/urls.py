@@ -6,10 +6,14 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from bot.views import messages
+from django.http import JsonResponse
+from Ticketing_tool.views import health_check as root_health_check
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("bot/", include('bot.urls')),
+    path("", root_health_check),  
     path('user/', include('login_details.urls')),
     path('ticket/', include('timer.urls')),
     path('roles/', include('roles_creation.urls')),

@@ -53,7 +53,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Security settings
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+hi)_oc5b4amw)o&%mk__mykl=5#v9f8lyf1oy1of%7$cg3z2(')  # Use an environment variable in production
-DEBUG = True
+DEBUG = False
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.174', '192.168.0.150']
 ALLOWED_HOSTS = ['*']  # Add your domain or IP address here
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
