@@ -53,7 +53,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Security settings
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+hi)_oc5b4amw)o&%mk__mykl=5#v9f8lyf1oy1of%7$cg3z2(')  # Use an environment variable in production
-DEBUG = False
+DEBUG = True
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.174', '192.168.0.150']
 ALLOWED_HOSTS = ['*']  # Add your domain or IP address here
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
@@ -67,6 +67,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000", 
      "*" # Allow requests from React frontend Add on
 ]
+
+# ================= MICROSOFT / TEAMS (LOCAL DEV DEFAULTS) =================
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -95,6 +98,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'cloudinary_storage',
     'cloudinary',
+    'mptt',
     'bot'
 ]
 
@@ -104,6 +108,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    "Ticketing_tool.middleware.jwt_csrf_middleware.JWTCSRFExemptMiddleware",
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -236,7 +241,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 20,
 }
 
 # Cloudinary settings
@@ -300,3 +305,13 @@ CSRF_TRUSTED_ORIGINS = [
     "https://eur.smba.trafficmanager.net",
     "https://your-domain.com",  # Replace with your actual domain
 ]
+
+
+# ================= MICROSOFT / TEAMS (LOCAL DEV DEFAULTS) =================
+MS_TENANT_ID = os.getenv("MS_TENANT_ID", "")          # empty in local
+MS_CLIENT_ID = os.getenv("MS_CLIENT_ID", "")
+MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET", "")
+
+TEAMS_INCOMING_WEBHOOK = os.getenv("TEAMS_INCOMING_WEBHOOK", "")
+MS_TEAM_ID = os.getenv("MS_TEAM_ID", "")
+MS_CHANNEL_ID = os.getenv("MS_CHANNEL_ID", "")

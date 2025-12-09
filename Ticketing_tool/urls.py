@@ -9,7 +9,7 @@ from bot.views import messages
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("api/messages", messages),
+    path("bot/", include('bot.urls')),
     path('user/', include('login_details.urls')),
     path('ticket/', include('timer.urls')),
     path('roles/', include('roles_creation.urls')),

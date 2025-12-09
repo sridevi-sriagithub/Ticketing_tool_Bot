@@ -38,7 +38,8 @@ from .tasks import send_auto_assignment_email_to_dispatcher,send_dispatch_assign
 from organisation_details.models import Organisation
 from solution_groups.models import SolutionGroup
  
- 
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -657,16 +658,16 @@ class TicketByStatusAPIView(APIView):
         serializer = TicketSerializer(tickets, many=True)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
-
-"Assigning ticket to developer"
 class AssignTicketAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+
     authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
 
     def put(self, request, ticket_id):
-        self.permission_required = "update_ticket"  
-        if not HasRolePermission().has_permission(request, self.permission_required):
-            return Response({'error': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+        self.permission_required = "update_ticket"
+        if not HasRolePermission.has_permission(self, request, self.permission_required):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         try:
             ticket = get_object_or_404(Ticket, ticket_id=ticket_id)
@@ -721,7 +722,45 @@ class AssignTicketAPIView(APIView):
             return Response(
                 {"error": f"An unexpected error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            )   
+# class AssignTicketAPIView(APIView):
+
+#     authentication_classes = [JWTAuthentication]
+#     permission_classes = [IsAuthenticated]
+
+#     def put(self, request, ticket_id):
+#         self.permission_required = "update_ticket"
+
+#         if not HasRolePermission().has_permission(request, self.permission_required):
+#             return Response({"error": "Permission denied"}, status=403)
+
+#         ticket_id = ticket_id.upper().strip()
+
+#         try:
+#             ticket = Ticket.objects.get(ticket_id=ticket_id)
+#         except Ticket.DoesNotExist:
+#             return Response({"error": "Ticket not found"}, status=404)
+
+#         engineer_id = request.data.get("assignee")
+#         if not engineer_id:
+#             return Response({"error": "assignee field is required"}, status=400)
+
+#         engineer = User.objects.filter(id=engineer_id).first()
+#         if not engineer:
+#             return Response({"error": "Invalid engineer"}, status=404)
+
+#         ticket.assignee = engineer
+#         ticket.save(update_fields=["assignee"])
+
+#         return Response(
+#             {
+#                 "message": "✅ Ticket assigned successfully",
+#                 "ticket_id": ticket.ticket_id,
+#                 "engineer": engineer.username,
+#             },
+#             status=200,
+#         )
+
 
     # def put(self, request, ticket_id):
     #     self.permission_required = "update_ticket"

@@ -745,6 +745,65 @@ class SLATimer(models.Model):
         self.end_time = timezone.now()
         self.save()
 
+    def calculate_sla_due_with_working_hours(self, response_time=None):
+        """
+        ✅ FINAL SECURE SLA DUE CALCULATION
+        - Uses WorkingHours
+        - Skips holidays
+        - Skips weekends
+        - Respects pause time
+        - NEVER crashes
+        """
+
+        from datetime import timedelta
+        from django.utils import timezone
+        import pytz
+        from timer.util import next_working_time
+
+        if not self.start_time:
+            return timezone.now()
+
+        if not response_time:
+            response_time = timedelta(hours=8)
+
+        working_hours = self.working_hours
+        if not working_hours:
+            working_hours = WorkingHours.objects.first()
+
+        if not working_hours:
+            return self.start_time + response_time
+
+        ist = pytz.timezone("Asia/Kolkata")
+        current_time = self.start_time.astimezone(ist)
+
+        remaining_hours = response_time.total_seconds() / 3600
+
+        if self.total_paused_time:
+            remaining_hours += self.total_paused_time.total_seconds() / 3600
+
+        current_time = next_working_time(current_time, working_hours)
+
+        while remaining_hours > 0:
+            day_end = current_time.replace(
+                hour=working_hours.end_hour.hour,
+                minute=working_hours.end_hour.minute,
+                second=0,
+                microsecond=0,
+            )
+
+            hours_left_today = (day_end - current_time).total_seconds() / 3600
+
+            if hours_left_today >= remaining_hours:
+                current_time += timedelta(hours=remaining_hours)
+                remaining_hours = 0
+            else:
+                remaining_hours -= hours_left_today
+                current_time = day_end + timedelta(minutes=1)
+                current_time = next_working_time(current_time, working_hours)
+
+        return current_time
+
+
 
    
     
@@ -931,73 +990,75 @@ class Notification(models.Model):
             )
 
     # 7️⃣ ✅ NEW: SLA Due Date Considering Working Hours & Holidays
-    def calculate_sla_due_with_working_hours(self, response_time=None):
-        """
-        Calculate SLA due date considering:
-        - Working hours
-        - Weekends
-        - Holidays
-        - Paused time
-        """
-        if not self.start_time or not self.ticket:
-            print("[DEBUG] Missing start_time or ticket. Returning current time.")
-            return timezone.now()
+    # def calculate_sla_due_with_working_hours(self, response_time=None):
+    #     """
+    #     Calculate SLA due date considering:
+    #     - Working hours
+    #     - Weekends
+    #     - Holidays
+    #     - Paused time
+    #     """
+    #     if not self.start_time or not self.ticket:
+    #         print("[DEBUG] Missing start_time or ticket. Returning current time.")
+    #         return timezone.now()
 
-        if not response_time:
-            response_time = self.ticket.priority.response_target_time or timedelta(hours=8)
-        print(f"[DEBUG] Response Time: {response_time}")
+    #     if not response_time:
+    #         response_time = self.ticket.priority.response_target_time or timedelta(hours=8)
+    #     print(f"[DEBUG] Response Time: {response_time}")
 
-        # Prefer an explicitly set SLA working_hours, then ticket organisation, then assignee organisation
-        working_hours = getattr(self, 'working_hours', None)
-        if not working_hours:
-            working_hours = getattr(self.ticket, 'ticket_organization', None) and getattr(self.ticket.ticket_organization, 'working_hours', None)
-        if not working_hours:
-            working_hours = getattr(self.ticket.assignee, 'organisation', None) and getattr(self.ticket.assignee.organisation, 'working_hours', None)
-        if not working_hours:
-            print("[DEBUG] No working hours configured. Using default response time.")
-            return self.start_time + response_time
+    #     # Prefer an explicitly set SLA working_hours, then ticket organisation, then assignee organisation
+    #     working_hours = getattr(self, 'working_hours', None)
+    #     if not working_hours:
+    #         working_hours = getattr(self.ticket, 'ticket_organization', None) and getattr(self.ticket.ticket_organization, 'working_hours', None)
+    #     if not working_hours:
+    #         working_hours = getattr(self.ticket.assignee, 'organisation', None) and getattr(self.ticket.assignee.organisation, 'working_hours', None)
+    #     if not working_hours:
+    #         print("[DEBUG] No working hours configured. Using default response time.")
+    #         return self.start_time + response_time
 
-        print(f"[DEBUG] Working Hours: {working_hours.start_hour} to {working_hours.end_hour}")
+    #     print(f"[DEBUG] Working Hours: {working_hours.start_hour} to {working_hours.end_hour}")
         
-        # ✅ CRITICAL FIX: Convert to IST timezone for proper hour comparisons
-        ist = pytz.timezone('Asia/Kolkata')
-        current_time = self.start_time.astimezone(ist)
-        print(f"[DEBUG] Start Time (IST): {current_time}")
+    #     # ✅ CRITICAL FIX: Convert to IST timezone for proper hour comparisons
+    #     ist = pytz.timezone('Asia/Kolkata')
+    #     current_time = self.start_time.astimezone(ist)
+    #     print(f"[DEBUG] Start Time (IST): {current_time}")
 
-        remaining_hours = response_time.total_seconds() / 3600
-        remaining_hours += self.total_paused_time.total_seconds() / 3600
-        print(f"[DEBUG] Remaining Hours: {remaining_hours}")
+    #     remaining_hours = response_time.total_seconds() / 3600
+    #     remaining_hours += self.total_paused_time.total_seconds() / 3600
+    #     print(f"[DEBUG] Remaining Hours: {remaining_hours}")
 
-        # ✅ Adjust start time if outside working hours (now in IST)
-        current_time = next_working_time(current_time, working_hours)
-        print(f"[DEBUG] Adjusted Start Time (IST): {current_time}")
+    #     # ✅ Adjust start time if outside working hours (now in IST)
+    #     current_time = next_working_time(current_time, working_hours)
+    #     print(f"[DEBUG] Adjusted Start Time (IST): {current_time}")
 
-        while remaining_hours > 0:
-            day_end = current_time.replace(
-                hour=working_hours.end_hour.hour,
-                minute=working_hours.end_hour.minute,
-                second=0,
-                microsecond=0
-            )
-            hours_left_today = (day_end - current_time).total_seconds() / 3600
-            print(f"[DEBUG] Hours Left Today: {hours_left_today}")
+    #     while remaining_hours > 0:
+    #         day_end = current_time.replace(
+    #             hour=working_hours.end_hour.hour,
+    #             minute=working_hours.end_hour.minute,
+    #             second=0,
+    #             microsecond=0
+    #         )
+    #         hours_left_today = (day_end - current_time).total_seconds() / 3600
+    #         print(f"[DEBUG] Hours Left Today: {hours_left_today}")
 
-            if hours_left_today >= remaining_hours:
-                # Enough time left today to complete
-                current_time += timedelta(hours=remaining_hours)
-                remaining_hours = 0
-            else:
-                # Not enough time today - subtract what we have and move to next day
-                remaining_hours -= max(hours_left_today, 0)
-                # Move past end of today's working hours to force next_working_time to go to next day
-                current_time = day_end + timedelta(hours=1)  # Move to next day
-                # Get the start of next working day
-                current_time = next_working_time(current_time, working_hours)
+    #         if hours_left_today >= remaining_hours:
+    #             # Enough time left today to complete
+    #             current_time += timedelta(hours=remaining_hours)
+    #             remaining_hours = 0
+    #         else:
+    #             # Not enough time today - subtract what we have and move to next day
+    #             remaining_hours -= max(hours_left_today, 0)
+    #             # Move past end of today's working hours to force next_working_time to go to next day
+    #             current_time = day_end + timedelta(hours=1)  # Move to next day
+    #             # Get the start of next working day
+    #             current_time = next_working_time(current_time, working_hours)
 
-            print(f"[DEBUG] Next Working Day Start Time: {current_time}")
+    #         print(f"[DEBUG] Next Working Day Start Time: {current_time}")
 
-        # Return the calculated due date
-        return current_time
+    #     # Return the calculated due date
+    #     return current_time
+
+    
 
     
 
