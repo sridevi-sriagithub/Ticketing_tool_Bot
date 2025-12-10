@@ -110,8 +110,8 @@ INSTALLED_APPS = [
     'five_notifications',
     'history',
     'services',
-    'celery',
-    'django_celery_results',
+    # 'celery',
+    # 'django_celery_results',
     'cloudinary_storage',
     'cloudinary',
     'mptt',
@@ -232,15 +232,18 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@example.com")
 # CELERY_RESULT_SERIALIZER = 'json'
 # CELERY_TIMEZONE = 'Asia/Kolkata'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# #working
+# CELERY_BROKER_URL = env("CELERY_BROKER_URL", default='redis://localhost:6379/0')  # Redis connection URL (assuming Redis is running locally)
+# # Use an explicit result backend; prefer redis or django-db depending on your setup
+# CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default='django-db')
+# CELERY_ACCEPT_CONTENT = ['application/json']  # Celery task content serialization format
+# CELERY_TASK_SERIALIZER = 'json'  # Task serialization format
+# CELERY_RESULT_SERIALIZER = 'json'  # Result serialization format
+# CELERY_TIMEZONE = 'Asia/Kolkata'
+# CELERY_CACHE_BACKEND = 'django-cache'
 
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default='redis://localhost:6379/0')  # Redis connection URL (assuming Redis is running locally)
-# Use an explicit result backend; prefer redis or django-db depending on your setup
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default='django-db')
-CELERY_ACCEPT_CONTENT = ['application/json']  # Celery task content serialization format
-CELERY_TASK_SERIALIZER = 'json'  # Task serialization format
-CELERY_RESULT_SERIALIZER = 'json'  # Result serialization format
-CELERY_TIMEZONE = 'Asia/Kolkata'
-CELERY_CACHE_BACKEND = 'django-cache'
+
+
   # Timezone for Celery tasks
 #CELERY_RESULT_BACKEND = 'django-db'  # Use Django database as the result backend
 

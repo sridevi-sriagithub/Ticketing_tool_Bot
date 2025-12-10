@@ -61,7 +61,7 @@ class RegisterUserAPIView(APIView):
             user.set_password(raw_password)
             user.save()
  
-            send_registration_email.delay(user.id, raw_password)
+            send_registration_email(user.id, raw_password)
  
             return Response(
                 {"message": "User registered successfully. Check your email for login credentials."},
@@ -174,7 +174,7 @@ class LoginUserAPIView(APIView):
             refresh = RefreshToken.for_user(user)
  
             # Optional: trigger background task
-            async_setup_user_related_records.delay(user.id)
+            async_setup_user_related_records(user.id)
  
             logger.info(f"Login successful for user '{email}'.")
  
@@ -318,7 +318,7 @@ class ChangePasswordAPIView(APIView):
 
 
             # Send password update email asynchronously
-            send_password_update_email.delay(user.email, user.username)
+            send_password_update_email(user.email, user.username)
 
             # self.send_password_update_email(user)
             # send_password_update_email.delay(user.email, user.username)
@@ -385,7 +385,7 @@ class BulkUserUploadAPIView(APIView):
                 f.write(chunk)
 
         # ✅ Call Celery task to process the file asynchronously
-        process_user_excel.delay(file_path, request.user.username)
+        process_user_excel(file_path, request.user.username)
 
         return Response({"message": "File is being processed in the background!"}, status=202)
 

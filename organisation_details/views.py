@@ -55,7 +55,7 @@ class OrganisationAPI(APIView):
         serializer = OrganisationSerializer(data=request.data)
         if serializer.is_valid():
             organisation = serializer.save(created_by=request.user)
-            send_organisation_creation_email.delay(
+            send_organisation_creation_email(
                 organisation.organisation_name,
                 organisation.organisation_mail
             )

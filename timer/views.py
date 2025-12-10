@@ -317,7 +317,7 @@ class CreateTicketAPIView(APIView):
             )
 
             from .tasks import send_ticket_creation_email
-            send_ticket_creation_email.delay(
+            send_ticket_creation_email(
                 str(ticket.ticket_id),
                 engineer_email,
                 requester_email,
@@ -326,7 +326,7 @@ class CreateTicketAPIView(APIView):
 
             if dispatcher_user:
                 from .tasks import send_auto_assignment_email_to_dispatcher
-                send_auto_assignment_email_to_dispatcher.delay(
+                send_auto_assignment_email_to_dispatcher(
                     str(ticket.ticket_id),
                     str(dispatcher_user.email)
                 )
@@ -338,7 +338,7 @@ class CreateTicketAPIView(APIView):
 
         # 🔔 Engineer
         if ticket.assignee and ticket.assignee.email:
-            send_teams_notification_task.delay(
+            send_teams_notification_task(
                 str(ticket.assignee.email),
                 "🎫 New Ticket Assigned",
                 f"Ticket {ticket.ticket_id} has been assigned to you.",
@@ -347,7 +347,7 @@ class CreateTicketAPIView(APIView):
 
         # 🔔 Requester
         if request.user.email:
-            send_teams_notification_task.delay(
+            send_teams_notification_task(
                 str(request.user.email),
                 "✅ Ticket Created",
                 f"Your ticket {ticket.ticket_id} was created successfully.",
@@ -356,7 +356,7 @@ class CreateTicketAPIView(APIView):
 
         # 🔔 Dispatcher (only if auto)
         if dispatcher_user and dispatcher_user.email:
-            send_teams_notification_task.delay(
+            send_teams_notification_task(
                 str(dispatcher_user.email),
                 "📌 Ticket Auto Assigned",
                 f"Ticket {ticket.ticket_id} was auto-assigned to you.",
@@ -816,7 +816,7 @@ class dispatcherAPIView(APIView):
                 dispatcher_email = dispatcher.user.email
                 developer_email = dispatcher.user.email
 
-                send_auto_assignment_email_to_dispatcher.delay(
+                send_auto_assignment_email_to_dispatcher(
                     ticket.ticket_id,
                     dispatcher_email
                 )
@@ -846,7 +846,7 @@ class dispatcherAPIView(APIView):
                 dispatcher_email = dispatcher_user.user.email
 
         # ✅ EXISTING EMAIL TASK
-        send_dispatch_assignment_emails.delay(
+        send_dispatch_assignment_emails(
             ticket_id=updated_ticket.ticket_id,
             developer_email=developer_email,
             dispatcher_email=dispatcher_email
@@ -857,7 +857,7 @@ class dispatcherAPIView(APIView):
 
         # Developer Teams Notification
         if developer_email:
-            send_teams_notification_task.delay(
+            send_teams_notification_task(
                 developer_email,
                 "🎫 Ticket Assigned",
                 f"Ticket {updated_ticket.ticket_id} has been assigned to you.",
@@ -866,7 +866,7 @@ class dispatcherAPIView(APIView):
 
         # Dispatcher Teams Notification
         if dispatcher_email:
-            send_teams_notification_task.delay(
+            send_teams_notification_task(
                 dispatcher_email,
                 "🛠 Ticket Auto Assigned",
                 f"Ticket {updated_ticket.ticket_id} has been auto-assigned.",
@@ -875,7 +875,7 @@ class dispatcherAPIView(APIView):
 
         # Requester Teams Notification
         if updated_ticket.created_by and updated_ticket.created_by.email:
-            send_teams_notification_task.delay(
+            send_teams_notification_task(
                 updated_ticket.created_by.email,
                 "✅ Ticket Assigned",
                 f"Your ticket {updated_ticket.ticket_id} has been assigned successfully.",
@@ -1071,7 +1071,7 @@ class AssignTicketAPIView(APIView):
             ticket_link = f"{settings.SITE_URL}/tickets/{ticket.ticket_id}"
 
             if engineer.email:
-                send_teams_notification_task.delay(
+                send_teams_notification_task(
                     engineer.email,
                     "🎫 Ticket Assigned",
                     f"Ticket {ticket.ticket_id} has been assigned to you.",
@@ -1080,7 +1080,7 @@ class AssignTicketAPIView(APIView):
 
             # ✅ ✅ SEND TEAMS TO REQUESTER ALSO
             if ticket.created_by and ticket.created_by.email:
-                send_teams_notification_task.delay(
+                send_teams_notification_task(
                     ticket.created_by.email,
                     "✅ Ticket Assigned",
                     f"Your ticket {ticket.ticket_id} has been assigned to {engineer.username}.",
@@ -1304,7 +1304,7 @@ class TicketDetailAPIView(APIView):
                 # Send notification to new assignee
                 if updated_ticket.assignee and updated_ticket.assignee.email:
                     from .tasks import send_ticket_reassignment_email
-                    send_ticket_reassignment_email.delay(
+                    send_ticket_reassignment_email(
                         str(updated_ticket.ticket_id),
                         str(updated_ticket.assignee.email),
                         str(request.user.username)  # Who made the reassignment
@@ -1313,7 +1313,7 @@ class TicketDetailAPIView(APIView):
                 # If it was auto-assigned to dispatcher, send dispatcher notification
                 if dispatcher_user:
                     from .tasks import send_auto_assignment_email_to_dispatcher
-                    send_auto_assignment_email_to_dispatcher.delay(
+                    send_auto_assignment_email_to_dispatcher(
                         str(updated_ticket.ticket_id), 
                         str(dispatcher_user.email)
                     )
@@ -1340,9 +1340,9 @@ class TicketDetailAPIView(APIView):
             # Handle status change (existing logic)
             if 'status' in data:
                 if ticket.created_by and ticket.created_by.email:
-                    send_status_change_email_async.delay(ticket.ticket_id, ticket.status, ticket.created_by.email)
+                    send_status_change_email_async(ticket.ticket_id, ticket.status, ticket.created_by.email)
                 if ticket.assignee and ticket.assignee.email:
-                    send_status_change_email_async.delay(ticket.ticket_id, ticket.status, ticket.assignee.email)
+                    send_status_change_email_async(ticket.ticket_id, ticket.status, ticket.assignee.email)
 
                 history_data = {
                     "title": f"{request.user.username} changed status to {data['status']}.",
