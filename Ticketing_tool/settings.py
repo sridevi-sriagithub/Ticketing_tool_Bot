@@ -28,9 +28,9 @@ MICROSOFT_GRAPH_BASE_URL = os.getenv(
     "MICROSOFT_GRAPH_BASE_URL",
     "https://graph.microsoft.com/v1.0"
 )
-SENDGRID_API_KEY = env("SENDGRID_API_KEY")
-SENDGRID_FROM_EMAIL = env("SENDGRID_FROM_EMAIL", default="no-reply@example.com")
-SENDGRID_FROM_NAME = env("SENDGRID_FROM_NAME", default="Support Team")
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", default="no-reply@example.com")
+SENDGRID_FROM_NAME = os.getenv("SENDGRID_FROM_NAME", default="Support Team")
 
 # MS_CLIENT_ID = env("MS_CLIENT_ID")
 # MS_CLIENT_SECRET = env("MS_CLIENT_SECRET")
@@ -212,15 +212,16 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'sridevigedela05@gmail.com'
 EMAIL_HOST_PASSWORD = 'ulgn jako ckts xodq'
-DEFAULT_FROM_EMAIL = "teerdavenigedela@gmail.com"
+# DEFAULT_FROM_EMAIL = "teerdavenigedela@gmail.com"
 
-EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+# EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 
 
-SENDGRID_SANDBOX_MODE_IN_DEBUG = env.bool("SENDGRID_SANDBOX_MODE_IN_DEBUG", default=False)
-SENDGRID_ECHO_TO_STDOUT = env.bool("SENDGRID_ECHO_TO_STDOUT", default=False)
+SENDGRID_SANDBOX_MODE_IN_DEBUG = os.getenv.bool("SENDGRID_SANDBOX_MODE_IN_DEBUG", default=False)
+SENDGRID_ECHO_TO_STDOUT = os.getenv.bool("SENDGRID_ECHO_TO_STDOUT", default=False)
 
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="no-reply@example.com")
+
 # EMAIL_HOST_USER = 'teerdavenigedela@gmail.com'
 # EMAIL_HOST_PASSWORD = 'vcig blpb lbdg sact'
 # # Celery configuration
