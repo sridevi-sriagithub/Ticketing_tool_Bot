@@ -63,8 +63,13 @@ class UserProfile(models.Model):
             return None
  
  
-    def _str_(self):
+    # def _str_(self):
+    #     return f"{self.first_name} {self.last_name} (ID: {self.personal_id})"
+    def __str__(self):
+        if self.user:
+            return self.user.username
         return f"{self.first_name} {self.last_name} (ID: {self.personal_id})"
+
    
    
     def save(self, *args, **kwargs):

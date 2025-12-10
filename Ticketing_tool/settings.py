@@ -16,6 +16,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+# ================================
+# MICROSOFT GRAPH / TEAMS SETTINGS
+# ================================
+SITE_URL = os.getenv("SITE_URL")
+AZURE_TENANT_ID = os.getenv("AZURE_TENANT_ID")
+AZURE_CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
+AZURE_CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
+
+MICROSOFT_GRAPH_BASE_URL = os.getenv(
+    "MICROSOFT_GRAPH_BASE_URL",
+    "https://graph.microsoft.com/v1.0"
+)
+
 # MS_CLIENT_ID = env("MS_CLIENT_ID")
 # MS_CLIENT_SECRET = env("MS_CLIENT_SECRET")
 # # For multi-tenant: use the tenant id of your own app for token by default,
@@ -53,7 +66,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Security settings
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+hi)_oc5b4amw)o&%mk__mykl=5#v9f8lyf1oy1of%7$cg3z2(')  # Use an environment variable in production
-DEBUG = False
+DEBUG = True
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.174', '192.168.0.150']
 ALLOWED_HOSTS = ['*']  # Add your domain or IP address here
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
@@ -308,10 +321,12 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 # ================= MICROSOFT / TEAMS (LOCAL DEV DEFAULTS) =================
-MS_TENANT_ID = os.getenv("MS_TENANT_ID", "")          # empty in local
-MS_CLIENT_ID = os.getenv("MS_CLIENT_ID", "")
-MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET", "")
+# MS_TENANT_ID = os.getenv("MS_TENANT_ID", "")          # empty in local
+# MS_CLIENT_ID = os.getenv("MS_CLIENT_ID", "")
+# MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET", "")
 
-TEAMS_INCOMING_WEBHOOK = os.getenv("TEAMS_INCOMING_WEBHOOK", "")
-MS_TEAM_ID = os.getenv("MS_TEAM_ID", "")
-MS_CHANNEL_ID = os.getenv("MS_CHANNEL_ID", "")
+# TEAMS_INCOMING_WEBHOOK = os.getenv("TEAMS_INCOMING_WEBHOOK", "")
+# MS_TEAM_ID = os.getenv("MS_TEAM_ID", "")
+# MS_CHANNEL_ID = os.getenv("MS_CHANNEL_ID", "")
+
+
