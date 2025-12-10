@@ -217,10 +217,10 @@ EMAIL_HOST_PASSWORD = 'ulgn jako ckts xodq'
 # EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 
 
-SENDGRID_SANDBOX_MODE_IN_DEBUG = os.getenv.bool("SENDGRID_SANDBOX_MODE_IN_DEBUG", default=False)
-SENDGRID_ECHO_TO_STDOUT = os.getenv.bool("SENDGRID_ECHO_TO_STDOUT", default=False)
+SENDGRID_SANDBOX_MODE_IN_DEBUG = env.bool("SENDGRID_SANDBOX_MODE_IN_DEBUG", default=False)
+SENDGRID_ECHO_TO_STDOUT = env.bool("SENDGRID_ECHO_TO_STDOUT", default=False)
 
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="no-reply@example.com")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@example.com")
 
 # EMAIL_HOST_USER = 'teerdavenigedela@gmail.com'
 # EMAIL_HOST_PASSWORD = 'vcig blpb lbdg sact'
