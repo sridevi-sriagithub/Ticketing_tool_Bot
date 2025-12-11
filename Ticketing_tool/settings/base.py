@@ -7,26 +7,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-# ======================================================
-# COMMON SETTINGS (Shared by Local + Production)
-# ======================================================
-
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="dev-secret-key")
-DEBUG = False
-
+# ======================
+# GLOBAL CONFIGURATION
+# ======================
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="dev-secret")
+DEBUG = False  # overridden in local.py
 ALLOWED_HOSTS = ["*"]
 
-# ---------------- MICROSOFT GRAPH / TEAMS ----------------
 SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
+
 AZURE_TENANT_ID = env("AZURE_TENANT_ID", default="")
 AZURE_CLIENT_ID = env("AZURE_CLIENT_ID", default="")
 AZURE_CLIENT_SECRET = env("AZURE_CLIENT_SECRET", default="")
-MICROSOFT_GRAPH_BASE_URL = env("MICROSOFT_GRAPH_BASE_URL", default="https://graph.microsoft.com/v1.0")
+MICROSOFT_GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0"
 
 SENDGRID_API_KEY = env("SENDGRID_API_KEY", default="")
 SENDGRID_FROM_EMAIL = env("SENDGRID_FROM_EMAIL", default="no-reply@example.com")
 SENDGRID_FROM_NAME = env("SENDGRID_FROM_NAME", default="Support Team")
 
+USE_CELERY = False       # overridden in local.py
+USE_SENDGRID = False     # overridden in production.py
+
+# ======================
+# APPS
+# ======================
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -35,7 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Your apps
+    "rest_framework",
+    "channels",
+
     "login_details",
     "timer.apps.TimerConfig",
     "solution_groups",
@@ -50,14 +56,8 @@ INSTALLED_APPS = [
     "five_notifications",
     "history",
     "services",
-    "mptt",
     "bot",
-
-    # Channels
-    "channels",
-
-    # API
-    "rest_framework",
+    "mptt",
 ]
 
 MIDDLEWARE = [
@@ -93,7 +93,9 @@ TEMPLATES = [
 WSGI_APPLICATION = "Ticketing_tool.wsgi.application"
 ASGI_APPLICATION = "Ticketing_tool.asgi.application"
 
-# ---------------- DATABASE ----------------
+# ======================
+# DATABASE
+# ======================
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -101,10 +103,8 @@ DATABASES = {
     }
 }
 
-# ---------------- AUTH ----------------
 AUTH_USER_MODEL = "login_details.User"
 
-# ---------------- STATIC / MEDIA ----------------
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "../Frontend/build/static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
@@ -114,12 +114,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# ---------------- CHANNELS ----------------
+# ======================
+# CHANNELS
+# ======================
 CHANNEL_LAYERS = {
-    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
 }
 
-# ---------------- DRF + JWT ----------------
+# ======================
+# DRF + JWT
+# ======================
 from datetime import timedelta
 
 REST_FRAMEWORK = {
@@ -134,7 +138,9 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
-# ---------------- CLOUDINARY ----------------
+# ======================
+# CLOUDINARY
+# ======================
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": "dngaxesdz",
     "API_KEY": "983585494285258",
@@ -142,5 +148,7 @@ CLOUDINARY_STORAGE = {
 }
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-# ---------------- CORS ----------------
+# ======================
+# CORS
+# ======================
 CORS_ALLOW_ALL_ORIGINS = True

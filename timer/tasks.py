@@ -228,150 +228,223 @@ from login_details.models import User
 
 logger = logging.getLogger(__name__)
 
+# @shared_task
+# def send_ticket_creation_email(ticket_id, engineer_email=None, requester_email=None, developer_org_email=None):
+#     """
+#     Sends a notification email upon ticket creation to the assigned engineer, 
+#     the requester, and the developer organization.
+#     Emails include both plain-text and styled HTML content, along with attachments.
+#     """
+#     try:
+#         Ticket = apps.get_model('timer', 'Ticket')
+#     except LookupError:
+#         logger.error("Model 'Ticket' not found in 'timer' app.")
+#         raise Exception("Required model not found in 'timer' app.")
+
+#     try:
+#         ticket = Ticket.objects.prefetch_related('attachments').select_related('developer_organization').get(ticket_id=ticket_id)
+#     except Ticket.DoesNotExist:
+#         error_msg = f"Ticket with ID {ticket_id} not found."
+#         logger.error(error_msg)
+#         raise Exception(error_msg)
+
+#     # Clean plain-text description from HTML if needed
+#     raw_description = ticket.description or ""
+#     plain_description = BeautifulSoup(raw_description, "html.parser").get_text().strip()
+
+#     # Build URLs
+#     ticket_url = f"{settings.SITE_URL}/tickets/{ticket.ticket_id}"
+#     from_email = settings.DEFAULT_FROM_EMAIL
+#     subject = f"🎫 New Ticket Created: {ticket.ticket_id}"
+
+#     # Plain text email body
+#     base_plain_body = (
+#         "Hello,\n\n"
+#         "A new ticket has been created.\n\n"
+#         f"Ticket ID: {ticket.ticket_id}\n"
+#         f"Summary: {ticket.summary}\n"
+#         f"Description: {plain_description}\n\n"
+#         f"Please view the ticket here:\n{ticket_url}\n\n"
+#         "Thank you,\nThe Support Team"
+#     )
+
+#     # HTML email template
+#     base_html_template = f"""
+#     <!DOCTYPE html>
+#     <html>
+#     <head>
+#       <meta charset="UTF-8">
+#       <title>Ticket Notification</title>
+#     </head>
+#     <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+#       <table align="center" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+#         <tr>
+#           <td align="center" style="padding: 20px;">
+#             <div style="
+#                 background-image: url('https://res.cloudinary.com/dxragmx2f/image/upload/v1746952549/NxTalk-02_bkbkpj.jpg');
+#                 background-size: cover;
+#                 background-repeat: no-repeat;
+#                 background-position: center;
+#                 width: 250px;
+#                 height: 100px;
+#                 margin: auto;
+#                 border-radius: 8px;">
+#             </div>
+#           </td>
+#         </tr>
+#         <tr>
+#           <td style="padding: 20px; text-align: center;">
+#             <h3 style="color: green;">🎫 Ticket Notification</h3>
+#             <table align="center" style="margin-top: 10px; font-size: 16px;">
+#               <tr><td><strong>Ticket ID:</strong></td><td style="padding-left: 10px;">{ticket.ticket_id}</td></tr>
+#               <tr><td><strong>Summary:</strong></td><td style="padding-left: 10px;">{ticket.summary}</td></tr>
+#               <tr><td><strong>Description:</strong></td><td style="padding-left: 10px;">{plain_description}</td></tr>
+#             </table>
+#             <br>
+#             <a href="{ticket_url}" target="_blank" style="
+#               background-color: #28a745;
+#               color: white;
+#               padding: 10px 20px;
+#               text-decoration: none;
+#               border-radius: 5px;
+#               display: inline-block;">
+#               View Ticket
+#             </a>
+#             <br><br>
+#             <p style="color: #555;">Thank you for your attention.<br>The Support Team</p>
+#           </td>
+#         </tr>
+#       </table>
+#     </body>
+#     </html>
+#     """
+
+#     # Function to send email
+#     def send_email_to(recipient_email, role):
+#         role_messages = {
+#             'engineer': 'assigned to you',
+#             'developer_org': 'assigned to your organization',
+#             'requester': 'successfully created',
+#         }
+#         role_note = role_messages.get(role, 'notified')
+
+#         personalized_plain = base_plain_body.replace(
+#             "has been created", f"has been {role_note}"
+#         )
+#         personalized_html = base_html_template.replace(
+#             "🎫 Ticket Notification", f"🎫 Ticket {role_note.capitalize()}"
+#         )
+
+#         msg = EmailMultiAlternatives(subject, personalized_plain, from_email, [recipient_email])
+#         msg.attach_alternative(personalized_html, "text/html")
+
+#         # Attach files if any
+#         attachments_qs = getattr(ticket, 'attachments', None)
+#         if attachments_qs:
+#             for attachment in attachments_qs.all():
+#                 try:
+#                     file_field = getattr(attachment, 'file', None)
+#                     if file_field:
+#                         file_path = getattr(file_field, 'path', None)
+#                         if file_path and os.path.isfile(file_path):
+#                             msg.attach_file(file_path)
+#                             logger.info(f"Attached file {file_path} for ticket {ticket.ticket_id}")
+#                         else:
+#                             logger.warning(f"File path invalid or does not exist: {file_path} for attachment id {attachment.id}")
+#                     else:
+#                         logger.warning(f"No file field found for attachment id {attachment.id}")
+#                 except Exception as e:
+#                     logger.error(f"Error attaching file for attachment id {attachment.id}: {e}")
+
+#         # Send email
+#         try:
+#             msg.send(fail_silently=False)
+#             logger.info(f"Sent ticket creation email to {role} at {recipient_email}")
+#         except Exception as e:
+#             logger.error(f"Failed to send email to {recipient_email}: {e}")
+#             raise
+
+#     # Send emails to specified recipients
+#     if ticket.assignee and engineer_email:
+#         send_email_to(engineer_email, 'engineer')
+#     if developer_org_email:
+#         send_email_to(developer_org_email, 'developer_org')
+#     if requester_email:
+#         send_email_to(requester_email, 'requester')
+
+from celery import shared_task
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from bs4 import BeautifulSoup
+from django.apps import apps
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+# ============================================================
+# UNIVERSAL DISPATCHER (works in local + production)
+# ============================================================
+
+def send_ticket_creation_email_dispatch(*args, **kwargs):
+    if settings.USE_CELERY:
+        send_ticket_creation_email.delay(*args, **kwargs)
+    else:
+        send_ticket_creation_email(*args, **kwargs)
+
+
+def send_teams_notification_dispatch(*args, **kwargs):
+    if settings.USE_CELERY:
+        send_teams_notification_task.delay(*args, **kwargs)
+    else:
+        send_teams_notification_task(*args, **kwargs)
+
+
+# ============================================================
+# EMAIL TASK (HTML + Attachments)
+# ============================================================
+
 @shared_task
 def send_ticket_creation_email(ticket_id, engineer_email=None, requester_email=None, developer_org_email=None):
-    """
-    Sends a notification email upon ticket creation to the assigned engineer, 
-    the requester, and the developer organization.
-    Emails include both plain-text and styled HTML content, along with attachments.
-    """
-    try:
-        Ticket = apps.get_model('timer', 'Ticket')
-    except LookupError:
-        logger.error("Model 'Ticket' not found in 'timer' app.")
-        raise Exception("Required model not found in 'timer' app.")
+    Ticket = apps.get_model("timer", "Ticket")
+    ticket = Ticket.objects.get(ticket_id=ticket_id)
 
-    try:
-        ticket = Ticket.objects.prefetch_related('attachments').select_related('developer_organization').get(ticket_id=ticket_id)
-    except Ticket.DoesNotExist:
-        error_msg = f"Ticket with ID {ticket_id} not found."
-        logger.error(error_msg)
-        raise Exception(error_msg)
-
-    # Clean plain-text description from HTML if needed
     raw_description = ticket.description or ""
     plain_description = BeautifulSoup(raw_description, "html.parser").get_text().strip()
 
-    # Build URLs
+    subject = f"🎫 Ticket Created: {ticket.ticket_id}"
     ticket_url = f"{settings.SITE_URL}/tickets/{ticket.ticket_id}"
     from_email = settings.DEFAULT_FROM_EMAIL
-    subject = f"🎫 New Ticket Created: {ticket.ticket_id}"
 
-    # Plain text email body
-    base_plain_body = (
-        "Hello,\n\n"
-        "A new ticket has been created.\n\n"
-        f"Ticket ID: {ticket.ticket_id}\n"
-        f"Summary: {ticket.summary}\n"
-        f"Description: {plain_description}\n\n"
-        f"Please view the ticket here:\n{ticket_url}\n\n"
-        "Thank you,\nThe Support Team"
-    )
-
-    # HTML email template
-    base_html_template = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Ticket Notification</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-      <table align="center" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <tr>
-          <td align="center" style="padding: 20px;">
-            <div style="
-                background-image: url('https://res.cloudinary.com/dxragmx2f/image/upload/v1746952549/NxTalk-02_bkbkpj.jpg');
-                background-size: cover;
-                background-repeat: no-repeat;
-                background-position: center;
-                width: 250px;
-                height: 100px;
-                margin: auto;
-                border-radius: 8px;">
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 20px; text-align: center;">
-            <h3 style="color: green;">🎫 Ticket Notification</h3>
-            <table align="center" style="margin-top: 10px; font-size: 16px;">
-              <tr><td><strong>Ticket ID:</strong></td><td style="padding-left: 10px;">{ticket.ticket_id}</td></tr>
-              <tr><td><strong>Summary:</strong></td><td style="padding-left: 10px;">{ticket.summary}</td></tr>
-              <tr><td><strong>Description:</strong></td><td style="padding-left: 10px;">{plain_description}</td></tr>
-            </table>
-            <br>
-            <a href="{ticket_url}" target="_blank" style="
-              background-color: #28a745;
-              color: white;
-              padding: 10px 20px;
-              text-decoration: none;
-              border-radius: 5px;
-              display: inline-block;">
-              View Ticket
-            </a>
-            <br><br>
-            <p style="color: #555;">Thank you for your attention.<br>The Support Team</p>
-          </td>
-        </tr>
-      </table>
-    </body>
-    </html>
+    html_body = f"""
+        <h2>Ticket {ticket.ticket_id}</h2>
+        <p>{plain_description}</p>
+        <a href="{ticket_url}">Open Ticket</a>
     """
 
-    # Function to send email
-    def send_email_to(recipient_email, role):
-        role_messages = {
-            'engineer': 'assigned to you',
-            'developer_org': 'assigned to your organization',
-            'requester': 'successfully created',
-        }
-        role_note = role_messages.get(role, 'notified')
+    def send_mail(recipient):
+        msg = EmailMultiAlternatives(subject, plain_description, from_email, [recipient])
+        msg.attach_alternative(html_body, "text/html")
+        msg.send()
 
-        personalized_plain = base_plain_body.replace(
-            "has been created", f"has been {role_note}"
-        )
-        personalized_html = base_html_template.replace(
-            "🎫 Ticket Notification", f"🎫 Ticket {role_note.capitalize()}"
-        )
-
-        msg = EmailMultiAlternatives(subject, personalized_plain, from_email, [recipient_email])
-        msg.attach_alternative(personalized_html, "text/html")
-
-        # Attach files if any
-        attachments_qs = getattr(ticket, 'attachments', None)
-        if attachments_qs:
-            for attachment in attachments_qs.all():
-                try:
-                    file_field = getattr(attachment, 'file', None)
-                    if file_field:
-                        file_path = getattr(file_field, 'path', None)
-                        if file_path and os.path.isfile(file_path):
-                            msg.attach_file(file_path)
-                            logger.info(f"Attached file {file_path} for ticket {ticket.ticket_id}")
-                        else:
-                            logger.warning(f"File path invalid or does not exist: {file_path} for attachment id {attachment.id}")
-                    else:
-                        logger.warning(f"No file field found for attachment id {attachment.id}")
-                except Exception as e:
-                    logger.error(f"Error attaching file for attachment id {attachment.id}: {e}")
-
-        # Send email
-        try:
-            msg.send(fail_silently=False)
-            logger.info(f"Sent ticket creation email to {role} at {recipient_email}")
-        except Exception as e:
-            logger.error(f"Failed to send email to {recipient_email}: {e}")
-            raise
-
-    # Send emails to specified recipients
-    if ticket.assignee and engineer_email:
-        send_email_to(engineer_email, 'engineer')
-    if developer_org_email:
-        send_email_to(developer_org_email, 'developer_org')
+    if engineer_email:
+        send_mail(engineer_email)
     if requester_email:
-        send_email_to(requester_email, 'requester')
+        send_mail(requester_email)
+    if developer_org_email:
+        send_mail(developer_org_email)
 
+
+# ============================================================
+# TEAMS NOTIFICATION TASK
+# ============================================================
+
+@shared_task
+def send_teams_notification_task(email, title, message, link):
+    if not getattr(settings, "TEAMS_ENABLED", False):
+        return
+
+    print("Sending Teams notification to:", email, title, message)
 
 
 # @shared_task
