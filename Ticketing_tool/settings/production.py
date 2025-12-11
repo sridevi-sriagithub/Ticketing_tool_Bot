@@ -1,0 +1,29 @@
+from .base import *
+
+DEBUG = False
+
+# MUST BE HTTPS IN PRODUCTION
+SITE_URL = env("SITE_URL")
+
+# ---------------- EMAIL (SENDGRID) ----------------
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+SENDGRID_ECHO_TO_STDOUT = False
+
+DEFAULT_FROM_EMAIL = SENDGRID_FROM_EMAIL
+
+# ---------------- CELERY DISABLED ----------------
+CELERY_BROKER_URL = None
+CELERY_RESULT_BACKEND = None
+
+# ---------------- TEAMS ENABLED ----------------
+TEAMS_ENABLED = True
+
+# ---------------- SECURITY ----------------
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
