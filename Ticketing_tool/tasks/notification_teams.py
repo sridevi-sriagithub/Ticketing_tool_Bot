@@ -19,3 +19,6 @@ def send_teams_notification_task(self, user_email, title, message, link):
     except Exception as exc:
         logger.error("Teams Notification FAILED → retrying… (%s)", exc)
         raise self.retry(exc=exc)
+
+
+    
