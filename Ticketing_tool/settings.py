@@ -343,9 +343,6 @@ SIMPLE_JWT = {
 # # MS_CHANNEL_ID = os.getenv("MS_CHANNEL_ID", "")
 
 
-
-
-
 from pathlib import Path
 import os
 import environ
@@ -360,42 +357,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DEBUG=(bool, False)
 )
+
+# Read .env only for local
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # =====================================================
 # CORE SECURITY
 # =====================================================
 
-# SECRET_KEY = env("DJANGO_SECRET_KEY")
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+hi)_oc5b4amw)o&%mk__mykl=5#v9f8lyf1oy1of%7$cg3z2(')  # Use an environment variable in production
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-# DEBUG = env.bool("DEBUG", default=False)
-DEBUG = False
+DEBUG = env.bool("DEBUG", default=False)
+
 ALLOWED_HOSTS = [
-    "nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
+    "nxdeskteams-bgbhhrbvbwbrf8a3.southeastasia-01.azurewebsites.net",
     "localhost",
     "127.0.0.1",
 ]
 
-
-# =====================================================
-# MICROSOFT GRAPH / TEAMS
-# =====================================================
-
-SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
-
-AZURE_TENANT_ID = env("AZURE_TENANT_ID")
-AZURE_CLIENT_ID = env("AZURE_CLIENT_ID")
-AZURE_CLIENT_SECRET = env("AZURE_CLIENT_SECRET")
-
-MICROSOFT_GRAPH_BASE_URL = env(
-    "MICROSOFT_GRAPH_BASE_URL",
-    default="https://graph.microsoft.com/v1.0"
-)
-
-SEND_TEAMS_NOTIFICATION = env.bool(
-    "SEND_TEAMS_NOTIFICATION", default=False
-)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 # =====================================================
 # APPLICATIONS
@@ -443,8 +424,8 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
 
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -474,9 +455,7 @@ ASGI_APPLICATION = "Ticketing_tool.asgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            os.path.join(BASE_DIR, "../Frontend/build"),
-        ],
+        "DIRS": [os.path.join(BASE_DIR, "../Frontend/build")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -490,26 +469,19 @@ TEMPLATES = [
 ]
 
 # =====================================================
-# DATABASE (SQLite local / Postgres prod)
+# DATABASE (AZURE POSTGRES)
 # =====================================================
 
 # DATABASES = {
-#     "default": env.db(
-#         "DATABASE_URL",
-#         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
-#     )
-# }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'ticketing_db',
-#         'USER': 'Ticketingtool',
-#         'PASSWORD': 'nxdesk@123',
-#         'HOST': 'nxdesk-database.postgres.database.azure.com',
-#         'PORT': '5432',
-#         'OPTIONS': {
-#             'sslmode': 'require',
-#         }
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.getenv("DB_NAME"),
+#         "USER": os.getenv("DB_USER"),
+#         "PASSWORD": os.getenv("DB_PASSWORD"),
+#         "HOST": os.getenv("DB_HOST"),
+#         "PORT": os.getenv("DB_PORT", "5432"),
+#         "OPTIONS": {"sslmode": "require"},
+#         "CONN_MAX_AGE": 60,
 #     }
 # }
 
@@ -528,8 +500,6 @@ DATABASES = {
     }
 }
 
-
-
 # =====================================================
 # AUTH
 # =====================================================
@@ -544,7 +514,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # =====================================================
-# REST FRAMEWORK / JWT
+# REST / JWT
 # =====================================================
 
 REST_FRAMEWORK = {
@@ -564,8 +534,15 @@ SIMPLE_JWT = {
 }
 
 # =====================================================
-# CELERY (KEPT & CLEAN)
+# CELERY
 # =====================================================
+
+# CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+# CELERY_RESULT_BACKEND = "django-db"
+# CELERY_ACCEPT_CONTENT = ["json"]
+# CELERY_TASK_SERIALIZER = "json"
+# CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Asia/Kolkata"
 
 CELERY_BROKER_URL = env(
     "CELERY_BROKER_URL", default="redis://localhost:6379/0"
@@ -578,28 +555,7 @@ CELERY_RESULT_BACKEND = env(
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "Asia/Kolkata"
-
-# =====================================================
-# CACHING
-# =====================================================
-
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "django_cache",
-    }
-}
-
-# =====================================================
-# CHANNELS (DEV SAFE)
-# =====================================================
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    }
-}
+# CELERY_TIMEZONE = "Asia/Kolkata"
 
 # =====================================================
 # STATIC & MEDIA
@@ -608,27 +564,20 @@ CHANNEL_LAYERS = {
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # =====================================================
-# CLOUDINARY (SECURE)
+# CLOUDINARY
 # =====================================================
 
 # CLOUDINARY_STORAGE = {
-#     "CLOUD_NAME": env("CLOUDINARY_CLOUD_NAME"),
-#     "API_KEY": env("CLOUDINARY_API_KEY"),
-#     "API_SECRET": env("CLOUDINARY_API_SECRET"),
+#     "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+#     "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+#     "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
 #     "SECURE": True,
 # }
-
-# DEFAULT_FILE_STORAGE = (
-#     "cloudinary_storage.storage.MediaCloudinaryStorage"
-# )
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dngaxesdz',
@@ -637,23 +586,22 @@ CLOUDINARY_STORAGE = {
     'SECURE': True,  
     'AUTHENTICATED': False
 }
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # =====================================================
-# CORS / CSRF (BOT SAFE)
+# CORS / CSRF
 # =====================================================
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://smba.trafficmanager.net",
     "https://eur.smba.trafficmanager.net",
-    "https://api.botframework.com",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
-
 CSRF_TRUSTED_ORIGINS = [
+    "https://nxdeskteams-bgbhhrbvbwbrf8a3.southeastasia-01.azurewebsites.net",
     "https://smba.trafficmanager.net",
     "https://eur.smba.trafficmanager.net",
 ]
@@ -670,10 +618,344 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # =====================================================
-# SECURITY (PROD READY)
+# SECURITY (PRODUCTION)
 # =====================================================
 
-SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)
-SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=False)
-CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=False)
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = "DENY"
+
+
+
+# from pathlib import Path
+# import os
+# import environ
+# from datetime import timedelta
+
+# # =====================================================
+# # BASE & ENV
+# # =====================================================
+
+# BASE_DIR = Path(__file__).resolve().parent.parent
+
+# env = environ.Env(
+#     DEBUG=(bool, False)
+# )
+# environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+# # =====================================================
+# # CORE SECURITY
+# # =====================================================
+
+# # SECRET_KEY = env("DJANGO_SECRET_KEY")
+# SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+hi)_oc5b4amw)o&%mk__mykl=5#v9f8lyf1oy1of%7$cg3z2(')  # Use an environment variable in production
+
+# # DEBUG = env.bool("DEBUG", default=False)
+# DEBUG = False
+# ALLOWED_HOSTS = [
+#     "nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
+#     "localhost",
+#     "127.0.0.1",
+# ]
+
+
+# # =====================================================
+# # MICROSOFT GRAPH / TEAMS
+# # =====================================================
+
+# SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
+
+# AZURE_TENANT_ID = env("AZURE_TENANT_ID")
+# AZURE_CLIENT_ID = env("AZURE_CLIENT_ID")
+# AZURE_CLIENT_SECRET = env("AZURE_CLIENT_SECRET")
+
+# MICROSOFT_GRAPH_BASE_URL = env(
+#     "MICROSOFT_GRAPH_BASE_URL",
+#     default="https://graph.microsoft.com/v1.0"
+# )
+
+# SEND_TEAMS_NOTIFICATION = env.bool(
+#     "SEND_TEAMS_NOTIFICATION", default=False
+# )
+
+# # =====================================================
+# # APPLICATIONS
+# # =====================================================
+
+# INSTALLED_APPS = [
+#     "django.contrib.admin",
+#     "django.contrib.auth",
+#     "django.contrib.contenttypes",
+#     "django.contrib.sessions",
+#     "django.contrib.messages",
+#     "django.contrib.staticfiles",
+
+#     # Third-party
+#     "rest_framework",
+#     "corsheaders",
+#     "mptt",
+#     "django_celery_results",
+#     "cloudinary",
+#     "cloudinary_storage",
+
+#     # Project apps
+#     "login_details",
+#     "timer.apps.TimerConfig",
+#     "solution_groups",
+#     "roles_creation",
+#     "organisation_details",
+#     "knowledge_article",
+#     "category",
+#     "priority",
+#     "personal_details",
+#     "project_details",
+#     "resolution",
+#     "five_notifications",
+#     "history",
+#     "services",
+#     "bot",
+# ]
+
+# # =====================================================
+# # MIDDLEWARE
+# # =====================================================
+
+# MIDDLEWARE = [
+#     "django.middleware.security.SecurityMiddleware",
+#     "whitenoise.middleware.WhiteNoiseMiddleware",
+
+#     "django.contrib.sessions.middleware.SessionMiddleware",
+#     "corsheaders.middleware.CorsMiddleware",
+
+#     "django.middleware.common.CommonMiddleware",
+#     "django.middleware.csrf.CsrfViewMiddleware",
+
+#     "Ticketing_tool.middleware.jwt_csrf_middleware.JWTCSRFExemptMiddleware",
+
+#     "django.contrib.auth.middleware.AuthenticationMiddleware",
+#     "django.contrib.messages.middleware.MessageMiddleware",
+#     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+#     "roles_creation.middlewares.RoleBasedAccessControlMiddleware",
+# ]
+
+# # =====================================================
+# # URL / WSGI / ASGI
+# # =====================================================
+
+# ROOT_URLCONF = "Ticketing_tool.urls"
+
+# WSGI_APPLICATION = "Ticketing_tool.wsgi.application"
+# ASGI_APPLICATION = "Ticketing_tool.asgi.application"
+
+# # =====================================================
+# # TEMPLATES
+# # =====================================================
+
+# TEMPLATES = [
+#     {
+#         "BACKEND": "django.template.backends.django.DjangoTemplates",
+#         "DIRS": [
+#             os.path.join(BASE_DIR, "../Frontend/build"),
+#         ],
+#         "APP_DIRS": True,
+#         "OPTIONS": {
+#             "context_processors": [
+#                 "django.template.context_processors.debug",
+#                 "django.template.context_processors.request",
+#                 "django.contrib.auth.context_processors.auth",
+#                 "django.contrib.messages.context_processors.messages",
+#             ],
+#         },
+#     },
+# ]
+
+# # =====================================================
+# # DATABASE (SQLite local / Postgres prod)
+# # =====================================================
+
+# # DATABASES = {
+# #     "default": env.db(
+# #         "DATABASE_URL",
+# #         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+# #     )
+# # }
+# # DATABASES = {
+# #     'default': {
+# #         'ENGINE': 'django.db.backends.postgresql',
+# #         'NAME': 'ticketing_db',
+# #         'USER': 'Ticketingtool',
+# #         'PASSWORD': 'nxdesk@123',
+# #         'HOST': 'nxdesk-database.postgres.database.azure.com',
+# #         'PORT': '5432',
+# #         'OPTIONS': {
+# #             'sslmode': 'require',
+# #         }
+# #     }
+# # }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',  # TEMP (default DB)
+#         'USER': 'Ticketingtool',
+#         'PASSWORD': 'nxdesk@123',
+#         'HOST': 'nxdesk-database.postgres.database.azure.com',
+#         'PORT': '5432',
+#         'OPTIONS': {
+#             'sslmode': 'require',
+#         },
+#         'CONN_MAX_AGE': 60,
+#     }
+# }
+
+
+
+# # =====================================================
+# # AUTH
+# # =====================================================
+
+# AUTH_USER_MODEL = "login_details.User"
+
+# AUTH_PASSWORD_VALIDATORS = [
+#     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+#     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+#     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+#     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+# ]
+
+# # =====================================================
+# # REST FRAMEWORK / JWT
+# # =====================================================
+
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         "rest_framework_simplejwt.authentication.JWTAuthentication",
+#     ],
+#     "DEFAULT_PERMISSION_CLASSES": [
+#         "rest_framework.permissions.IsAuthenticated",
+#     ],
+# }
+
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+#     "ROTATE_REFRESH_TOKENS": True,
+#     "BLACKLIST_AFTER_ROTATION": True,
+# }
+
+# # =====================================================
+# # CELERY (KEPT & CLEAN)
+# # =====================================================
+
+# CELERY_BROKER_URL = env(
+#     "CELERY_BROKER_URL", default="redis://localhost:6379/0"
+# )
+
+# CELERY_RESULT_BACKEND = env(
+#     "CELERY_RESULT_BACKEND", default="django-db"
+# )
+
+# CELERY_ACCEPT_CONTENT = ["json"]
+# CELERY_TASK_SERIALIZER = "json"
+# CELERY_RESULT_SERIALIZER = "json"
+# CELERY_TIMEZONE = "Asia/Kolkata"
+
+# # =====================================================
+# # CACHING
+# # =====================================================
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+#         "LOCATION": "django_cache",
+#     }
+# }
+
+# # =====================================================
+# # CHANNELS (DEV SAFE)
+# # =====================================================
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer",
+#     }
+# }
+
+# # =====================================================
+# # STATIC & MEDIA
+# # =====================================================
+
+# STATIC_URL = "/static/"
+# STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# STATICFILES_STORAGE = (
+#     "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# )
+
+# MEDIA_URL = "/media/"
+# MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# # =====================================================
+# # CLOUDINARY (SECURE)
+# # =====================================================
+
+# # CLOUDINARY_STORAGE = {
+# #     "CLOUD_NAME": env("CLOUDINARY_CLOUD_NAME"),
+# #     "API_KEY": env("CLOUDINARY_API_KEY"),
+# #     "API_SECRET": env("CLOUDINARY_API_SECRET"),
+# #     "SECURE": True,
+# # }
+
+# # DEFAULT_FILE_STORAGE = (
+# #     "cloudinary_storage.storage.MediaCloudinaryStorage"
+# # )
+
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': 'dngaxesdz',
+#     'API_KEY': '983585494285258',
+#     'API_SECRET': 'uYYsOTYP3tHUj_9Qa5Fn7KXH4_I',
+#     'SECURE': True,  
+#     'AUTHENTICATED': False
+# }
+
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# # =====================================================
+# # CORS / CSRF (BOT SAFE)
+# # =====================================================
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "https://smba.trafficmanager.net",
+#     "https://eur.smba.trafficmanager.net",
+#     "https://api.botframework.com",
+# ]
+
+# CORS_ALLOW_CREDENTIALS = True
+
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://smba.trafficmanager.net",
+#     "https://eur.smba.trafficmanager.net",
+# ]
+
+# # =====================================================
+# # INTERNATIONALIZATION
+# # =====================================================
+
+# LANGUAGE_CODE = "en-us"
+# TIME_ZONE = "Asia/Kolkata"
+# USE_I18N = True
+# USE_TZ = True
+
+# DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# # =====================================================
+# # SECURITY (PROD READY)
+# # =====================================================
+
+# SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)
+# SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=False)
+# CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=False)
+# X_FRAME_OPTIONS = "DENY"
