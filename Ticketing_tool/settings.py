@@ -365,16 +365,23 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 # CORE SECURITY
 # =====================================================
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-DEBUG = env.bool("DEBUG", default=False)
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise Exception("DJANGO_SECRET_KEY is not set in environment variables")
+
+DEBUG = False
+
 
 ALLOWED_HOSTS = [
-    "nxdeskteams-bgbhhrbvbwbrf8a3.southeastasia-01.azurewebsites.net",
+    "nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
     "localhost",
     "127.0.0.1",
+    "169.254.129.4",   # Azure internal routing
 ]
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
+]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 
