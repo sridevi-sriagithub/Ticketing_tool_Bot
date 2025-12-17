@@ -147,38 +147,53 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 @shared_task
+# def async_setup_user_related_records(user_id):
+#     """Create UserRole & Employee asynchronously after login."""
+#     try:
+#         user = User.objects.get(id=user_id)
+#     except User.DoesNotExist:
+#         logger.error(f"User with ID {user_id} does not exist.")
+#         return
+
+#     with transaction.atomic():
+#         user_role, created = UserRole.objects.get_or_create(
+#             user=user,
+#             defaults={
+#                 'role': Role.objects.filter(name="Employee").first(),
+#                 'is_active': True
+#             }
+#         )
+
+#         if created:
+#             logger.info(f"Created UserRole for user {user.email}")
+
+#         if not Employee.objects.filter(user_role=user_role).exists():
+#             default_org = Organisation.objects.first()
+#             if not default_org:
+#                 logger.error("No organisation found. Please create one.")
+#                 return
+
+#             Employee.objects.create(
+#                 user_role=user_role,
+#                 organisation=default_org
+#             )
+#             logger.info(f"Created Employee record for {user.email}")
+
+# from roles_creation.models import Role, UserRole
+
 def async_setup_user_related_records(user_id):
-    """Create UserRole & Employee asynchronously after login."""
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        logger.error(f"User with ID {user_id} does not exist.")
-        return
+    default_role = Role.objects.filter(code="ADMIN").first()
 
-    with transaction.atomic():
-        user_role, created = UserRole.objects.get_or_create(
-            user=user,
-            defaults={
-                'role': Role.objects.filter(name="Employee").first(),
-                'is_active': True
-            }
-        )
+    if not default_role:
+        raise Exception("Default role not found")
 
-        if created:
-            logger.info(f"Created UserRole for user {user.email}")
-
-        if not Employee.objects.filter(user_role=user_role).exists():
-            default_org = Organisation.objects.first()
-            if not default_org:
-                logger.error("No organisation found. Please create one.")
-                return
-
-            Employee.objects.create(
-                user_role=user_role,
-                organisation=default_org
-            )
-            logger.info(f"Created Employee record for {user.email}")
-
+    UserRole.objects.get_or_create(
+        user_id=user_id,
+        role=default_role,
+        defaults={
+            "is_active": True
+        }
+    )
 
 
 
