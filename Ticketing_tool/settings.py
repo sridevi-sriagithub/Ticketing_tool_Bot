@@ -371,17 +371,21 @@ if not SECRET_KEY:
     raise Exception("DJANGO_SECRET_KEY is not set in environment variables")
 
 DEBUG = False
-
-
 ALLOWED_HOSTS = [
     "nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
-    "localhost",
-    "127.0.0.1",
-    "169.254.129.4",   # Azure internal routing
 ]
+
+
+# ALLOWED_HOSTS = [
+#     "nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
+#     "localhost",
+#     "127.0.0.1",
+#     "169.254.129.4",   # Azure internal routing
+# ]
 CSRF_TRUSTED_ORIGINS = [
     "https://nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
 ]
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 
