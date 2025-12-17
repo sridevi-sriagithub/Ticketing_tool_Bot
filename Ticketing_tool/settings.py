@@ -373,6 +373,9 @@ if not SECRET_KEY:
 DEBUG = False
 ALLOWED_HOSTS = [
     "nxdeskteams-bgbhhrbvbwrbfa3.southeastasia-01.azurewebsites.net",
+    ".azurewebsites.net",   # ✅ allows Azure internal traffic
+    "localhost",
+    "127.0.0.1",
 ]
 
 

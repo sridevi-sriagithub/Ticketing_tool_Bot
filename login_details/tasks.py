@@ -1,6 +1,6 @@
 # yourapp/tasks.py
 
-import pandas as pd
+# import pandas as pd
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from organisation_details.models import Organisation
@@ -19,6 +19,7 @@ User = get_user_model()
 
 @shared_task
 def process_user_excel(file_path, uploaded_by):
+    import pandas as pd 
     """Celery task to process the Excel file asynchronously."""
     df = pd.read_excel(file_path)
 
