@@ -306,3 +306,34 @@ def async_setup_user_related_records(user_id):
 #         error_msg = f"Error sending password reset email: {str(e)}"
 #         print(error_msg)
 #         return False
+
+
+from django.db import transaction
+from roles_creation.models import Role, UserRole
+
+def assign_role_to_user(user, role_code, assigned_by=None):
+    """
+    Explicit role assignment.
+    Safe, transactional, admin-controlled.
+    """
+
+    role = Role.objects.filter(name=role_code, is_active=True).first()
+    if not role:
+        raise ValueError(f"Role '{role_code}' does not exist")
+
+    with transaction.atomic():
+        user_role, created = UserRole.objects.get_or_create(
+            user=user,
+            role=role,
+            defaults={
+                "is_active": True,
+                "created_by": assigned_by,
+            }
+        )
+
+        if not created and not user_role.is_active:
+            user_role.is_active = True
+            user_role.modified_by = assigned_by
+            user_role.save(update_fields=["is_active", "modified_by"])
+
+    return user_role
