@@ -2,7 +2,6 @@
 
 
 from django.contrib import admin
-from django.contrib.auth.models import Permission
 from .models import Role, Permission as CustomPermission, RolePermission,UserRole
 from django.contrib import admin
 from .models import Role
@@ -70,7 +69,7 @@ class RolePermissionAdmin(admin.ModelAdmin):
 
     # ✅ Bulk action to assign all permissions to selected roles
     def assign_all_permissions(self, request, queryset):
-        from django.contrib.auth.models import Permission
+        from roles_creation import Permission
         all_permissions = Permission.objects.all()
         for role_permission in queryset:
             role_permission.permission.set(all_permissions)  # Assign all permissions

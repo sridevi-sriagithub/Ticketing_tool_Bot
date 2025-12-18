@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Role, Permission, RolePermission,UserRole
-from django.contrib.auth.models import Permission
+from .models import Permission
 from .models import RolePermission
 
 
