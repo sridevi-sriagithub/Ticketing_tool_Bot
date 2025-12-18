@@ -444,13 +444,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
 
-    "Ticketing_tool.middleware.jwt_csrf_middleware.JWTCSRFExemptMiddleware",
+    # "Ticketing_tool.middleware.jwt_csrf_middleware.JWTCSRFExemptMiddleware",
 
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
-    "roles_creation.middlewares.RoleBasedAccessControlMiddleware",
+    # "roles_creation.middlewares.RoleBasedAccessControlMiddleware",
 ]
 
 # =====================================================
@@ -466,10 +466,25 @@ ASGI_APPLICATION = "Ticketing_tool.asgi.application"
 # TEMPLATES
 # =====================================================
 
+# TEMPLATES = [
+#     {
+#         "BACKEND": "django.template.backends.django.DjangoTemplates",
+#         "DIRS": [os.path.join(BASE_DIR, "../Frontend/build")],
+#         "APP_DIRS": True,
+#         "OPTIONS": {
+#             "context_processors": [
+#                 "django.template.context_processors.debug",
+#                 "django.template.context_processors.request",
+#                 "django.contrib.auth.context_processors.auth",
+#                 "django.contrib.messages.context_processors.messages",
+#             ],
+#         },
+#     },
+# ]
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "../Frontend/build")],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -481,6 +496,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 # =====================================================
 # DATABASE (AZURE POSTGRES)
