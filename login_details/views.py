@@ -49,10 +49,10 @@ class RegisterUserAPIView(APIView):
  
  
     def post(self, request):
-        self.permission_required = "create_users"
+        # self.permission_required = "create_users"
     
-        if not HasRolePermission().has_permission(request, self.permission_required):
-         return Response({'error': 'Permission denied.'}, status=403)
+        # if not HasRolePermission().has_permission(request, self.permission_required):
+        #  return Response({'error': 'Permission denied.'}, status=403)
 
         serializer = RegistrationUserSerializer(data=request.data)
  
@@ -78,18 +78,18 @@ class RegisterGetAPIVIEW(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     def get(self, request, *args, **kwargs):
-        self.permission_required = "view_users"
+        # self.permission_required = "view_users"
     
-        if not HasRolePermission().has_permission(request, self.permission_required):
-         return Response({'error': 'Permission denied.'}, status=403)
+        # if not HasRolePermission().has_permission(request, self.permission_required):
+        #  return Response({'error': 'Permission denied.'}, status=403)
 
         register = User.objects.all()
         serializer = RegistrationUserSerializer(register, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request, *args, **kwargs):
-        self.permission_required = "update_users"
-        HasRolePermission.has_permission(self,request,view=self.permission_required)
+        # self.permission_required = "update_users"
+        # HasRolePermission.has_permission(self,request,view=self.permission_required)
         user_id = kwargs.get("id")  # Extract the id from the URL
         user = get_object_or_404(User, id=user_id)  
         
