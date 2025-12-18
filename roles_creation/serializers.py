@@ -37,20 +37,11 @@ class RoleSerializer(serializers.ModelSerializer):
 #         fields = '__all__'
 
 class PermissionSerializer(serializers.ModelSerializer):
-    created_by = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
-    )
-    modified_by = serializers.SlugRelatedField()
-#       
     class Meta:
         model = Permission
-        fields = [
-            "permission_id",
-            "name",
-            "is_active",
-            "created_at",
-            "modified_at",
-        ]
+        fields = "__all__"
+        read_only_fields = ("created_by", "modified_by")
+
 
 
 class RolePermissionSerializer(serializers.ModelSerializer):
