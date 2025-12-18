@@ -36,7 +36,6 @@ class RoleSerializer(serializers.ModelSerializer):
 #         model = Permission
 #         fields = '__all__'
 
-
 class PermissionSerializer(serializers.ModelSerializer):
     created_by = serializers.StringRelatedField(read_only=True)
     modified_by = serializers.StringRelatedField(read_only=True)
@@ -44,7 +43,6 @@ class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
         fields = "__all__"
-
 
 class RolePermissionSerializer(serializers.ModelSerializer):
     permission = serializers.PrimaryKeyRelatedField(
