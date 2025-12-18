@@ -36,12 +36,14 @@ class RoleSerializer(serializers.ModelSerializer):
 #         model = Permission
 #         fields = '__all__'
 
+
 class PermissionSerializer(serializers.ModelSerializer):
+    created_by = serializers.StringRelatedField(read_only=True)
+    modified_by = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Permission
         fields = "__all__"
-        read_only_fields = ("created_by", "modified_by")
-
 
 
 class RolePermissionSerializer(serializers.ModelSerializer):
@@ -97,12 +99,14 @@ class RolePermissionSerializer(serializers.ModelSerializer):
 
 
 class UserRoleSerializer(serializers.ModelSerializer):
-    created_by = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
-    )
-    modified_by = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
-    )
+    # created_by = serializers.SlugRelatedField(
+    #     read_only=True, slug_field='username'
+    # )
+    # modified_by = serializers.SlugRelatedField(
+    #     read_only=True, slug_field='username'
+    # )
+    user = serializers.StringRelatedField()
+    role = serializers.StringRelatedField()
     class Meta:
         model = UserRole
         fields = '__all__'
